@@ -69,6 +69,5 @@ triangles = createDelaunayTriangulation(points, firstTriangle)
 
 print triangles
 
-
-
-
+# Ich glaub hier sind noch Fehler...
+print pointOnLine2((1,0),(0,0),(2,0))
