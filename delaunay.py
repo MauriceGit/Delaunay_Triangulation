@@ -24,12 +24,14 @@ def findTriangleIndex(point, triangles):
 			return i
 
 def dist(p1, p2):
-	return math.sqrt((p2[0]-p1[0])**2 + (p2[1]-p1[1])**2)
+	a = (p2[0]-p1[0])**2 + (p2[1]-p1[1])**2
+	return math.sqrt(a)
 
 def pointOnLine2(p, p1, p2):
 	d1 = dist(p, p1)
 	d2 = dist(p, p2)
-	return dist(p1, p2)-(d1+d1) <= 0.001
+	d3 = dist(p1,p2)
+	return math.fabs(d3 - (d1+d2)) <= 0.000001
 
 def pointOnLine(p, t):
 	# Ich nehm den Abstand von t0-p und t1-p und
@@ -70,4 +72,4 @@ triangles = createDelaunayTriangulation(points, firstTriangle)
 print triangles
 
 # Ich glaub hier sind noch Fehler...
-print pointOnLine2((1,0),(0,0),(2,0))
+print pointOnLine2((0.999999,0),(1,0),(2,0))
