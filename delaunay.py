@@ -106,6 +106,8 @@ def legalize(triangles, t):
         triangles = legalize(triangles, t2)
     return triangles    
 
+# Fuegt einen Punkt in eine bestehende Triangulierung ein und
+# korrigiert moegliche auftretende Fehler.
 def insertPointIntoTriangles(point, triangles):
     i = findTriangleIndex(point, triangles)
     line = pointOnLine(point, triangles[i])
@@ -148,20 +150,20 @@ def insertPointIntoTriangles(point, triangles):
         
     return triangles
 
+# Fuegt inkrementell Punkte in die Triangulierung ein.
 def createDelaunayTriangulation(points, triangle):
     triangles = [triangle]
     for point in points:
         triangles = insertPointIntoTriangles(point, triangles)
     return triangles    
 
+# Loescht alle Dreiecke, die sich auf das initiale Dreieck beziehen.
 def removeAllInitTriangles(allTriangles, t):
     triangles = copy.copy(allTriangles)
     for i in range(3):
         for t2 in allTriangles:
             for j in range(3):
-                #print t[i], " <--> ", t2[j]
                 if t[i] == t2[j]:
-                    #print "weg --> ", t[i], " <--> ", t2[j]
                     if t2 in triangles:
                         triangles.remove(t2)
     return triangles
