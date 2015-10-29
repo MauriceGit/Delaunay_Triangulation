@@ -6,7 +6,7 @@ x = 1920
 y = 1080
 
 points = []
-for i in range(100):
+for i in range(2000):
 	points.append((rand.randint(0,x),rand.randint(0,y)))
 points.sort()
 

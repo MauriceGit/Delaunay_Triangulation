@@ -15,14 +15,30 @@ def pointInTriangle3(pt, v1, v2, v3):
     b2 = sign(pt, v2, v3) <= 0
     b3 = sign(pt, v3, v1) <= 0
     
-    return ((b1==b2)) and ((b2==b3)) and pointInAABB(pt, map(max, v1, v2, v3), map(min, v1, v2, v3))
+    return ((b1-b2)<0.000001) and ((b2-b3)<0.000001) and pointInAABB(pt, map(max, v1, v2, v3), map(min, v1, v2, v3))
 
 def pointInTriangle2(p, t):
     return pointInTriangle3(p, t[0], t[1], t[2])
+    
+def pointInTriangle4(p,t):
+    
+    m1 = np.array([ [1, t[0][0], t[0][1]],
+                    [1, t[1][0], t[1][1]],
+                    [1, p[0]   , p[1]   ]])
+    m2 = np.array([ [1, t[1][0], t[1][1]],
+                    [1, t[2][0], t[2][1]],
+                    [1, p[0]   , p[1]   ]])
+    m3 = np.array([ [1, t[2][0], t[2][1]],
+                    [1, t[0][0], t[0][1]],
+                    [1, p[0]   , p[1]   ]])
+    
+    res = (np.linalg.det(m1) >= 0) == (np.linalg.det(m2) >= 0) == (np.linalg.det(m3) >= 0)
+    return res
+    
 
 def findTriangle(point, triangles):
     for t in triangles:
-        if pointInTriangle2(point, t):
+        if pointInTriangle4(point, t):
             return t
     print "Das sollte nicht passieren..."
 
@@ -34,7 +50,7 @@ def pointOnLine2(p, p1, p2):
     d1 = dist(p, p1)
     d2 = dist(p, p2)
     d3 = dist(p1,p2)
-    return math.fabs(d3 - (d1+d2)) <= 0.01
+    return math.fabs(d3 - (d1+d2)) <= 0.0000001
 
 # Ich nehm den Abstand von t0-p und t1-p und
 # wenn das zusammenaddiert t1-t0 ergibt, liegts drauf.
@@ -127,7 +143,7 @@ def insertPointIntoTriangles(point, triangles):
         triangles = legalize(triangles, t2)
         triangles = legalize(triangles, t3)
     else:
-        print "blubb"
+        print "Sonderfall: Punkt auf Kante zweier Dreiecke."
         # Hier der Sonderfall: Punkt auf der Kante:
         # Jetzt muss er theoretisch automatisch das richtige zweite Dreieck finden!
         t2 = findTriangle(point, triangles)
