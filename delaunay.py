@@ -168,21 +168,26 @@ def removeAllInitTriangles(allTriangles, t):
                         triangles.remove(t2)
     return triangles
 
-###################################################
+# Maximale Koordinate in irgendeine Richtung...
+def maxCoord(points):
+    ma = 0
+    mi = 0
+    for p in points:
+        ma = max(max(p), ma)
+        mi = min(min(p), mi)
+    return max(ma, math.fabs(mi))
 
-# read or create Points out of thin air:
-points = [(1,2.5), (2,1), (2,5), (2.5,3), (3.5,2), (4,4.5), (5,3)]
-# maximale Ausdehnung der Koordinaten:
-m = 12
-# Initiales Dreieck:
-t = ((-3*m,-3*m), (3*m,0), (0,3*m))
+# Erstellt eine Delaunay-Triangulierung der uebergebenen Punkte!
+def delaunay(points):
+    # maximale Ausdehnung der Koordinaten:
+    m = maxCoord(points)
+    # Initiales Dreieck:
+    t = ((-3*m,-3*m), (3*m,0), (0,3*m))
 
-triangles = createDelaunayTriangulation(points, t)
-triangles = removeAllInitTriangles(triangles, t)
-print triangles
-
-
-
+    triangles = createDelaunayTriangulation(points, t)
+    triangles = removeAllInitTriangles(triangles, t)
+    
+    return triangles
 
 
 
