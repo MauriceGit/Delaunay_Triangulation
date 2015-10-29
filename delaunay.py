@@ -134,16 +134,15 @@ def insertPointIntoTriangles(point, triangles):
         # Hier ganz normal in das Dreieck einfuegen:
         t1 = (point, t[0], t[1])
         triangles.append(t1)
+        triangles = legalize(triangles, t1)
         t2 = (point, t[1], t[2])
         triangles.append(t2)
+        triangles = legalize(triangles, t2)
         t3 = (point, t[2], t[0])
         triangles.append(t3)
-        
-        triangles = legalize(triangles, t1)
-        triangles = legalize(triangles, t2)
         triangles = legalize(triangles, t3)
     else:
-        print "Sonderfall: Punkt auf Kante zweier Dreiecke."
+        #print "Sonderfall: Punkt auf Kante zweier Dreiecke."
         # Hier der Sonderfall: Punkt auf der Kante:
         # Jetzt muss er theoretisch automatisch das richtige zweite Dreieck finden!
         t2 = findTriangle(point, triangles)
@@ -152,16 +151,15 @@ def insertPointIntoTriangles(point, triangles):
         
         tt1 = (point, t[line], t[(line+1)%3])
         triangles.append(tt1)
+        triangles = legalize(triangles, tt1)
         tt2 = (point, t[(line+2)%3], t[line])
         triangles.append(tt2)
+        triangles = legalize(triangles, tt2)
         tt3 = (point, t2[line2], t2[(line2+1)%3])
         triangles.append(tt3)
+        triangles = legalize(triangles, tt3)
         tt4 = (point, t2[(line2+2)%3], t2[line2])
         triangles.append(tt4)
-        
-        triangles = legalize(triangles, tt1)
-        triangles = legalize(triangles, tt2)
-        triangles = legalize(triangles, tt3)
         triangles = legalize(triangles, tt4)
         
     return triangles
@@ -174,14 +172,12 @@ def createDelaunayTriangulation(points, triangle):
     return triangles    
 
 # Loescht alle Dreiecke, die sich auf das initiale Dreieck beziehen.
-def removeAllInitTriangles(allTriangles, t):
-    triangles = copy.copy(allTriangles)
+def removeAllInitTriangles(triangles, t):
     for i in range(3):
-        for t2 in allTriangles:
+        for t2 in triangles:
             for j in range(3):
                 if t[i] == t2[j]:
-                    if t2 in triangles:
-                        triangles.remove(t2)
+                    triangles.remove(t2)
     return triangles
 
 # Maximale Koordinate in irgendeine Richtung...
