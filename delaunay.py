@@ -1,4 +1,6 @@
 import math
+import numpy as np
+import copy
 
 # http://totologic.blogspot.de/2014/01/accurate-point-in-triangle-test.html
 def pointInTriangle(p, t):
@@ -44,11 +46,65 @@ def pointOnLine(p, t):
     if pointOnLine2(p, t[2], t[0]):
         return 1
     return -1
+    
+# prueft, ob t p1 und p2 und not p3 matched.
+def matchT(t, p1, p2, notp3):
+    b1 = False
+    b2 = False
+    b3 = True
+    index = -1
+    for i in range(3):
+        if t[i] == p1:
+            b1 = True
+            continue
+        if t[i] == p2:
+            b2 = True
+            continue
+        if t[i] == notp3:
+            b3 = False
+        else:
+            index = i
+    return (b1 and b2 and b3, index)
 
-# Verifiziert die Kante des Dreiecks gegenüber des Index i.
-def legalize(t, i):
+# Findet ein Dreieck, welches p1 und p2 aber NICHT p3 enthaelt.
+def findNeighbourTriangle(triangles, p1, p2, notp3):
+    for t in triangles:
+        (b, i) = matchT(t, p1, p2, notp3)
+        if b:
+            return (t, i)
+    return (None, -1)
+
+# https://en.wikipedia.org/wiki/Delaunay_triangulation
+# Brainfuck aber awesome, wenns geht :-)
+def notValid(t, p):
+    matrix = np.array(
+            [[t[0][0],t[0][1],t[0][0]**2+t[0][1]**2,1],
+             [t[1][0],t[1][1],t[1][0]**2+t[1][1]**2,1],
+             [t[2][0],t[2][1],t[2][0]**2+t[2][1]**2,1],
+             [p[0]   ,p[1]   ,p[0]**2   +p[1]**2   ,1]])
+             
+    return np.linalg.det(matrix) > 0
+
+# Verifiziert die Kante des Dreiecks gegenueber des Index i.
+# Weil wir das schoen und sinnvoll programmieren, ist die Kante, die verifiziert
+# werden soll immer gegenueber von Punkt 0. Also zwischen p1 und p2.
+def legalize(triangles, t):
+    # check nextI in nextT auf Validitaet.
+    (nextT, nextI) = findNeighbourTriangle(triangles, t[1], t[2], t[0])
+    if nextT == None:
+        return triangles
+    p = nextT[nextI]
     
-    
+    if notValid(t, p):
+        triangles.remove(t)
+        triangles.remove(nextT)
+        t1 = (t[0], t[1], p)
+        triangles.append(t1)
+        t2 = (t[0], p, t[2])
+        triangles.append(t2)
+        triangles = legalize(triangles, t1)
+        triangles = legalize(triangles, t2)
+    return triangles    
 
 def insertPointIntoTriangles(point, triangles):
     i = findTriangleIndex(point, triangles)
@@ -57,9 +113,15 @@ def insertPointIntoTriangles(point, triangles):
         # Hier ganz normal in das Dreieck einfuegen:
         t = triangles[i]
         triangles.remove(t)
-        triangles.append((point, t[0], t[1]))
-        triangles.append((point, t[1], t[2]))
-        triangles.append((point, t[2], t[0]))
+        t1 = (point, t[0], t[1])
+        triangles.append(t1)
+        t2 = (point, t[1], t[2])
+        triangles.append(t2)
+        t3 = (point, t[2], t[0])
+        triangles.append(t3)
+        triangles = legalize(triangles, t1)
+        triangles = legalize(triangles, t2)
+        triangles = legalize(triangles, t3)
     else:
         # Hier der Sonderfall: Punkt auf der Kante:
         t1 = triangles[i]
@@ -70,30 +132,52 @@ def insertPointIntoTriangles(point, triangles):
         t2 = triangles[i2]
         triangles.remove(t2)
         
-        triangles.append((point, t1[line], t1[(line+1)%3]))
-        triangles.append((point, t1[(line+2)%3], t1[line]))
-        triangles.append((point, t2[line2], t2[(line2+1)%3]))
-        triangles.append((point, t2[(line2+2)%3], t2[line2]))
+        tt1 = (point, t1[line], t1[(line+1)%3])
+        triangles.append(tt1)
+        tt2 = (point, t1[(line+2)%3], t1[line])
+        triangles.append(tt2)
+        tt3 = (point, t2[line2], t2[(line2+1)%3])
+        triangles.append(tt3)
+        tt4 = (point, t2[(line2+2)%3], t2[line2])
+        triangles.append(tt4)
+        
+        triangles = legalize(triangles, tt1)
+        triangles = legalize(triangles, tt2)
+        triangles = legalize(triangles, tt3)
+        triangles = legalize(triangles, tt4)
         
     return triangles
 
-def createDelaunayTriangulation(points, triangles):
+def createDelaunayTriangulation(points, triangle):
+    triangles = [triangle]
     for point in points:
         triangles = insertPointIntoTriangles(point, triangles)
     return triangles    
 
+def removeAllInitTriangles(allTriangles, t):
+    triangles = copy.copy(allTriangles)
+    for i in range(3):
+        for t2 in allTriangles:
+            for j in range(3):
+                #print t[i], " <--> ", t2[j]
+                if t[i] == t2[j]:
+                    #print "weg --> ", t[i], " <--> ", t2[j]
+                    if t2 in triangles:
+                        triangles.remove(t2)
+    return triangles
+
 ###################################################
 
 # read or create Points out of thin air:
-points = [(3,2), (1,3), (5,2), (6,4)]
+points = [(1,2.5), (2,1), (2,5), (2.5,3), (3.5,2), (4,4.5), (5,3)]
 # maximale Ausdehnung der Koordinaten:
 m = 12
 # Initiales Dreieck:
-firstTriangle = [((-3*m,-3*m), (3*m,0), (0,3*m))]
+t = ((-3*m,-3*m), (3*m,0), (0,3*m))
 
-triangles = createDelaunayTriangulation(points, firstTriangle)
+triangles = createDelaunayTriangulation(points, t)
+triangles = removeAllInitTriangles(triangles, t)
 print triangles
-
 
 
 
