@@ -20,10 +20,10 @@ def pointInTriangle(p, t):
     c = 1 - a - b   
     return (0<=a<=1) and (0<=b<=1) and (0<=c<=1)
 
-def findTriangleIndex(point, triangles):
-    for i in range(len(triangles)):
-        if pointInTriangle(point, triangles[i]):
-            return i
+def findTriangle(point, triangles):
+    for t in triangles:
+        if pointInTriangle(point, t):
+            return t
 
 def dist(p1, p2):
     a = (p2[0]-p1[0])**2 + (p2[1]-p1[1])**2
@@ -109,34 +109,34 @@ def legalize(triangles, t):
 # Fuegt einen Punkt in eine bestehende Triangulierung ein und
 # korrigiert moegliche auftretende Fehler.
 def insertPointIntoTriangles(point, triangles):
-    i = findTriangleIndex(point, triangles)
-    line = pointOnLine(point, triangles[i])
+    t = findTriangle(point, triangles)
+    line = pointOnLine(point, t)
+    
+    triangles.remove(t)
     if line == -1:
         # Hier ganz normal in das Dreieck einfuegen:
-        t = triangles[i]
-        triangles.remove(t)
         t1 = (point, t[0], t[1])
         triangles.append(t1)
         t2 = (point, t[1], t[2])
         triangles.append(t2)
         t3 = (point, t[2], t[0])
         triangles.append(t3)
+        
         triangles = legalize(triangles, t1)
         triangles = legalize(triangles, t2)
         triangles = legalize(triangles, t3)
     else:
+        print "jepp, auf Kante."
         # Hier der Sonderfall: Punkt auf der Kante:
-        t1 = triangles[i]
-        triangles.remove(t1)
         # Jetzt muss er theoretisch automatisch das richtige zweite Dreieck finden!
         i2 = findTriangleIndex(point, triangles)
         line2 = pointOnLine(point, triangles[i2])
         t2 = triangles[i2]
         triangles.remove(t2)
         
-        tt1 = (point, t1[line], t1[(line+1)%3])
+        tt1 = (point, t[line], t[(line+1)%3])
         triangles.append(tt1)
-        tt2 = (point, t1[(line+2)%3], t1[line])
+        tt2 = (point, t[(line+2)%3], t[line])
         triangles.append(tt2)
         tt3 = (point, t2[line2], t2[(line2+1)%3])
         triangles.append(tt3)
