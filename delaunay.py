@@ -2,28 +2,29 @@ import math
 import numpy as np
 import copy
 
-# http://totologic.blogspot.de/2014/01/accurate-point-in-triangle-test.html
-def pointInTriangle(p, t):
-    x  = p[0]
-    y  = p[1]
-    x1 = t[0][0]
-    y1 = t[0][1]
-    x2 = t[1][0]
-    y2 = t[1][1]
-    x3 = t[2][0]
-    y3 = t[2][1]
+def sign(p1, p2, p3):
+  return (p1[0] - p3[0]) * (p2[1] - p3[1]) - (p2[0] - p3[0]) * (p1[1] - p3[1])
+
+def pointInAABB(pt, c1, c2):
+  return c2[0] <= pt[0] <= c1[0] and c2[1] <= pt[1] <= c1[1]
+
+# http://stackoverflow.com/questions/20248076/how-do-i-check-if-a-point-is-inside-a-triangle-on-the-line-is-ok-too
+# Thanks a lot to: Krumelur, even though he stole it too from GameDev somewhere :-)
+def pointInTriangle3(pt, v1, v2, v3):
+    b1 = sign(pt, v1, v2) <= 0
+    b2 = sign(pt, v2, v3) <= 0
+    b3 = sign(pt, v3, v1) <= 0
     
-    a = ((y2 - y3)*(x - x3) + (x3 - x2)*(y - y3)) / \
-        ((y2 - y3)*(x1 - x3) + (x3 - x2)*(y1 - y3))
-    b = ((y3 - y1)*(x - x3) + (x1 - x3)*(y - y3)) / \
-        ((y2 - y3)*(x1 - x3) + (x3 - x2)*(y1 - y3))
-    c = 1 - a - b   
-    return (0<=a<=1) and (0<=b<=1) and (0<=c<=1)
+    return ((b1==b2)) and ((b2==b3)) and pointInAABB(pt, map(max, v1, v2, v3), map(min, v1, v2, v3))
+
+def pointInTriangle2(p, t):
+    return pointInTriangle3(p, t[0], t[1], t[2])
 
 def findTriangle(point, triangles):
     for t in triangles:
-        if pointInTriangle(point, t):
+        if pointInTriangle2(point, t):
             return t
+    print "Das sollte nicht passieren..."
 
 def dist(p1, p2):
     a = (p2[0]-p1[0])**2 + (p2[1]-p1[1])**2
@@ -33,7 +34,7 @@ def pointOnLine2(p, p1, p2):
     d1 = dist(p, p1)
     d2 = dist(p, p2)
     d3 = dist(p1,p2)
-    return math.fabs(d3 - (d1+d2)) <= 0.001
+    return math.fabs(d3 - (d1+d2)) <= 0.01
 
 # Ich nehm den Abstand von t0-p und t1-p und
 # wenn das zusammenaddiert t1-t0 ergibt, liegts drauf.
@@ -126,12 +127,11 @@ def insertPointIntoTriangles(point, triangles):
         triangles = legalize(triangles, t2)
         triangles = legalize(triangles, t3)
     else:
-        print "jepp, auf Kante."
+        print "blubb"
         # Hier der Sonderfall: Punkt auf der Kante:
         # Jetzt muss er theoretisch automatisch das richtige zweite Dreieck finden!
-        i2 = findTriangleIndex(point, triangles)
-        line2 = pointOnLine(point, triangles[i2])
-        t2 = triangles[i2]
+        t2 = findTriangle(point, triangles)
+        line2 = pointOnLine(point, t2)
         triangles.remove(t2)
         
         tt1 = (point, t[line], t[(line+1)%3])
