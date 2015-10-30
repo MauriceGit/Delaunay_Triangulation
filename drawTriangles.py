@@ -3,14 +3,16 @@ from delaunay import delaunay
 import random as rand
 import time
 
-x = 800
-y = 800
+x = 10000
+y = 10000
 
 start = time.clock()
 
 points = []
-for i in range(500):
-	points.append((rand.randint(0,x),rand.randint(0,y)))
+for i in range(5000):
+	p = (rand.randint(0,x),rand.randint(0,y))
+	if not p in points:
+		points.append(p)
 
 points.append((0,0))
 points.append((0,y))
