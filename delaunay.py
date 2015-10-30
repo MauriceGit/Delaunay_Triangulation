@@ -3,24 +3,6 @@ import numpy as np
 import copy
 import time
 
-def sign(p1, p2, p3):
-  return (p1[0] - p3[0]) * (p2[1] - p3[1]) - (p2[0] - p3[0]) * (p1[1] - p3[1])
-
-def pointInAABB(pt, c1, c2):
-  return c2[0] <= pt[0] <= c1[0] and c2[1] <= pt[1] <= c1[1]
-
-# http://stackoverflow.com/questions/20248076/how-do-i-check-if-a-point-is-inside-a-triangle-on-the-line-is-ok-too
-# Thanks a lot to: Krumelur, even though he stole it too from GameDev somewhere :-)
-def pointInTriangle3(pt, v1, v2, v3):
-    b1 = sign(pt, v1, v2) <= 0
-    b2 = sign(pt, v2, v3) <= 0
-    b3 = sign(pt, v3, v1) <= 0
-    
-    return ((b1-b2)<0.000001) and ((b2-b3)<0.000001) and pointInAABB(pt, map(max, v1, v2, v3), map(min, v1, v2, v3))
-
-def pointInTriangle2(p, t):
-    return pointInTriangle3(p, t[0], t[1], t[2])
-    
 def pointInTriangle4(p,t):
     
     m1 = np.array([ [1, t[0][0], t[0][1]],
@@ -33,9 +15,7 @@ def pointInTriangle4(p,t):
                     [1, t[0][0], t[0][1]],
                     [1, p[0]   , p[1]   ]])
     
-    res = (np.linalg.det(m1) >= 0) == (np.linalg.det(m2) >= 0) == (np.linalg.det(m3) >= 0)
-    return res
-    
+    return (np.linalg.det(m1) >= 0) == (np.linalg.det(m2) >= 0) == (np.linalg.det(m3) >= 0)
 
 def findTriangle(point, triangles):
     for t in triangles:
@@ -202,7 +182,7 @@ def removeOutOfBoundsTriangles(triangles, minX, minY, maxX, maxY):
     return triangles
 
 # Erstellt eine Delaunay-Triangulierung der uebergebenen Punkte!
-def delaunay(points, minX, minY, maxX, maxY):
+def delaunay(points):
     # maximale Ausdehnung der Koordinaten:
     m = maxCoord(points)
     # Initiales Dreieck:
@@ -217,7 +197,7 @@ def delaunay(points, minX, minY, maxX, maxY):
     print "Legalisieren dauert: %.2fs" % (time.clock()-start)
     
     triangles = removeAllInitTriangles(triangles, t)
-    triangles = removeOutOfBoundsTriangles(triangles, minX, minY, maxX, maxY)
+    triangles = removeOutOfBoundsTriangles(triangles, -m, -m, m, m)
     
     return triangles
 

@@ -9,20 +9,20 @@ y = 10000
 start = time.clock()
 
 points = []
-for i in range(5000):
+for i in range(50):
 	p = (rand.randint(0,x),rand.randint(0,y))
 	if not p in points:
 		points.append(p)
 
-points.append((0,0))
-points.append((0,y))
-points.append((x,0))
-points.append((x,y))
+#points.append((0,0))
+#points.append((0,y))
+#points.append((x,0))
+#points.append((x,y))
 
 print "Punkte generieren: %.2fs" % (time.clock()-start)
 start = time.clock()
 
-triangles = delaunay(points, 0, 0, x, y)
+triangles = delaunay(points)
 
 print "Delaunay-Triangulierung: %.2fs" % (time.clock()-start)
 start = time.clock()
