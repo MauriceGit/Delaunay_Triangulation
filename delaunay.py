@@ -1,6 +1,7 @@
 import math
 import numpy as np
 import copy
+import time
 
 def sign(p1, p2, p3):
   return (p1[0] - p3[0]) * (p2[1] - p3[1]) - (p2[0] - p3[0]) * (p1[1] - p3[1])
@@ -189,15 +190,34 @@ def maxCoord(points):
         mi = min(min(p), mi)
     return max(ma, math.fabs(mi))
 
+# Es kommt vor, dass Dreiecke erstellt werden, die die Grenzen ueberschreiten...
+# Die werden erstmal manuell geloescht.
+def removeOutOfBoundsTriangles(triangles, minX, minY, maxX, maxY):
+    for t in triangles:
+        for i in range(3):
+            p = t[i]
+            if p[0] > maxX or p[1] > maxY or p[0] < minX or p[1] < minY:
+                if t in triangles:
+                    triangles.remove(t)
+    return triangles
+
 # Erstellt eine Delaunay-Triangulierung der uebergebenen Punkte!
-def delaunay(points):
+def delaunay(points, minX, minY, maxX, maxY):
     # maximale Ausdehnung der Koordinaten:
     m = maxCoord(points)
     # Initiales Dreieck:
     t = ((-3*m,-3*m), (3*m,0), (0,3*m))
 
     triangles = createDelaunayTriangulation(points, t)
+    
+    start = time.clock()
+    # Alle Dreiecke nochmal legalisieren, Just in Case...
+    for t1 in triangles:
+        triangles = legalize(triangles, t1)
+    print "Legalisieren dauert: %.2fs" % (time.clock()-start)
+    
     triangles = removeAllInitTriangles(triangles, t)
+    triangles = removeOutOfBoundsTriangles(triangles, minX, minY, maxX, maxY)
     
     return triangles
 
