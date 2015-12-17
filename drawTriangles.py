@@ -12,7 +12,7 @@ y = 10000
 start = time.clock()
 
 points = []
-for i in range(2000):
+for i in range(50):
 	p = (rand.randint(0,x),rand.randint(0,y))
 	if not p in points:
 		points.append(p)

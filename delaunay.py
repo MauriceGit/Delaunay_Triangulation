@@ -5,6 +5,7 @@ import math
 import numpy as np
 import copy
 import time
+import sys
 from matplotlib import path
 
 # working but slow!
@@ -28,52 +29,112 @@ def pointInTriangle6(p, t):
     res = triangle.contains_points(points)
     return res[0]
     
-def findTriangle(point, triangles):
-    for t in triangles:
-        if pointInTriangle6(point, t):
+#def findTriangle(point, triangles):
+#    for t in triangles:
+#        if pointInTriangle6(point, t):
+#            return t
+#    print "Das sollte nicht passieren..."
+    
+def vecLen(v):
+    return math.sqrt(v[0]**2 + v[1]**2)
+    
+def euclidDistance(p1, p2):
+    p = (p2[0]-p1[0], p2[1]-p1[1])
+    return vecLen(p)
+    
+def alreadyVisited(t, visited):
+    for v in visited:
+        if t == None or equal(t,v):
+            return True
+    return False
+
+def getOuterPoint(nextT, thisT):
+    for i in range(3):
+        if nextT[i] != thisT[0] and nextT[i] != thisT[1] and nextT[i] != thisT[2]:
+            return nextT[i]
+    print "not happening..."
+
+def findTriangle2Rec(p, t, lastT):
+    
+    count = 0
+    
+    visited = []
+    
+    while True:
+        if t != None and pointInTriangle6(p, t):
+            #print "visited:", len(visited)
             return t
-    print "Das sollte nicht passieren..."
-    
-def findTriangle2Rec(p, t):
-    if pointInTriangle6(p, t):
-        return t
-    
-    # Welches anliegende Dreieck ist näher an p:
-    t1 = t[3]
-    t2 = t[4]
-    t3 = t[5]
-    
-    if t1 != None:
-        d1 = abs(p[0]-(t1[0][0]+t1[1][0]+t1[2][0])) + abs(p[1]-(t1[0][1]+t1[1][1]+t1[2][1]))
-    else:
-        d1 = None
-    
-    if t2 != None:
-        d2 = abs(p[0]-(t2[0][0]+t2[1][0]+t2[2][0])) + abs(p[1]-(t2[0][1]+t2[1][1]+t2[2][1]))
-    else:
-        d2 = None
-    
-    if t3 != None:
-        d3 = abs(p[0]-(t3[0][0]+t3[1][0]+t3[2][0])) + abs(p[1]-(t3[0][1]+t3[1][1]+t3[2][1]))
-    else:
-        d3 = None
-    
-    if d1 < d2 and d1 != None:
-        if d1 < d3 and d3 != None:
-            return findTriangle2Rec(p, t1)
+        
+        visited.append(t)
+        
+        d1 = sys.maxint
+        d2 = sys.maxint
+        
+        # Welches anliegende Dreieck ist näher an p:
+        t1 = t[3]
+        t2 = t[4]
+        t3 = t[5]
+        
+        if equal(t1, lastT):
+            nextT1 = t2
+            nextT2 = t3
         else:
-            return findTriangle2Rec(p, t3)
-    else:
-        if d2 < d3 and d2 != None:
-            return findTriangle2Rec(p, t2)
+            if equal(t2, lastT):
+                nextT1 = t1
+                nextT2 = t3
+            else:
+                nextT1 = t1
+                nextT2 = t2
+        
+        if nextT1 == None and nextT2 == None:
+            print "shit."
+        
+        # Wenn einer von beiden None ist und der andere nicht.
+        lastT = t
+        if nextT1 == None and nextT2 != None:
+            t = nextT2
+            continue
+        if nextT2 == None and nextT1 != None:
+            t = nextT1
+            continue
+        
+        #  Euklidische Distanz.
+        if nextT1 != None:
+            #outerPoint = getOuterPoint(nextT1, t)
+            tmpP = ((nextT1[0][0]+nextT1[1][0]+nextT1[2][0])/3.0, (nextT1[0][1]+nextT1[1][1]+nextT1[2][1])/3.0)
+            d1 = euclidDistance(tmpP, p)
+            #d1 = euclidDistance(outerPoint, p)
+        
+        if nextT2 != None:
+            #outerPoint = getOuterPoint(nextT2, t)
+            tmpP = ((nextT2[0][0]+nextT2[1][0]+nextT2[2][0])/3.0, (nextT2[0][1]+nextT2[1][1]+nextT2[2][1])/3.0)
+            d2 = euclidDistance(tmpP, p)
+            #d2 = euclidDistance(outerPoint, p)
+        
+        # jetzt ist keiner von beiden None!
+        if d1 < d2:
+            if alreadyVisited(nextT1, visited):
+                t = nextT2
+            else:
+                if alreadyVisited(nextT2, visited):
+                    #print "bullshit"
+                    t = nextT2
+                t = nextT1
         else:
-            return findTriangle2Rec(p, t3)
-    
+            if alreadyVisited(nextT2, visited):
+                t = nextT1
+            else:
+                if alreadyVisited(nextT1, visited):
+                    #print "bullshit"
+                    t = nextT1
+                t = nextT2
+        
+        count += 1
     
 # Might be faster...
 def findTriangle2(point, triangles):
     # Start with first triangle Doesn't matter which one.
-    return findTriangle2Rec(point, triangles[0])
+    return findTriangle2Rec(point, triangles[0], None)
 
 def dist(p1, p2):
     a = (p2[0]-p1[0])**2 + (p2[1]-p1[1])**2
@@ -86,7 +147,7 @@ def pointOnLine2(p, p1, p2):
     return math.fabs(d3 - (d1+d2)) <= 0.0000001
    
 def equal(t1, t2):
-    return (t1[0] == t2[0] and t1[1] == t2[1] and t1[2] == t2[2])
+    return (t1 == None and t2 == None) or (t1 != None and t2 != None and (t1[0] == t2[0] and t1[1] == t2[1] and t1[2] == t2[2]))
 
 # Muss ich selber implementieren, da nur die ersten 3 Komponenten auf 
 # Gleichheit getestet werden sollen!
@@ -201,6 +262,13 @@ def changeReferenceFromTo(fromT, toT, t):
             t[i] = toT
             break
 
+def findNextTriangleWithPoint(point, t):
+    for i in range(3, 6):
+        if pointInTriangle6(point, t[i]):
+            return t[i]
+    print "shit fuck"
+        
+
 # Fuegt einen Punkt in eine bestehende Triangulierung ein und
 # korrigiert moegliche auftretende Fehler.
 def insertPointIntoTriangles(point, triangles):
@@ -236,7 +304,7 @@ def insertPointIntoTriangles(point, triangles):
         #print "Sonderfall: Punkt auf Kante zweier Dreiecke."
         # Hier der Sonderfall: Punkt auf der Kante:
         # Jetzt muss er theoretisch automatisch das richtige zweite Dreieck finden!
-        t2 = findTriangle2(point, triangles)
+        t2 = findNextTriangleWithPoint(point, t)
         line2 = pointOnLine(point, t2)
         
         triangles = removeTriangleFromList(t2, triangles)
