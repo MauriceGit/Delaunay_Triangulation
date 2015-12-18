@@ -16,6 +16,18 @@ def generateRandomPoints(count, sizeX, sizeY):
     print "Punkte generieren: %.2fs" % (time.clock()-start)
     return points
 
+def generateWeightedRandomPoints(count, sizeX, sizeY):
+    points = []
+    start = time.clock()
+    for i in range(count):
+        x = rand.randint(0,sizeX/2)-rand.randint(0,sizeX/2) + sizeX/2
+        y = rand.randint(0,sizeY/2)-rand.randint(0,sizeY/2) + sizeY/2
+        p = (x, y)
+        if not p in points:
+            points.append(p)
+    print "Punkte generieren: %.2fs" % (time.clock()-start)
+    return points
+
 def drawPoints(points, filename, sizeX, sizeY):
     im = Image.new('RGB', (sizeX*10, sizeY*10))
     draw = ImageDraw.Draw(im)
@@ -49,11 +61,12 @@ def generateTriangles(points):
 ########################################################################
 
 
-sizeX = 10000
-sizeY = 10000
-pointCount = 2000
+sizeX = 20000
+sizeY = 20000
+pointCount = 5000
 
-points = generateRandomPoints(pointCount, sizeX, sizeY)
+#points = generateRandomPoints(pointCount, sizeX, sizeY)
+points = generateWeightedRandomPoints(pointCount, sizeX, sizeY)
 
 #drawPoints(debugPoints, "debug_out.jpg", sizeX, sizeY)
 

@@ -361,6 +361,11 @@ def insertPointIntoTriangles(point, triangles, debug):
         # Hier der Sonderfall: Punkt auf der Kante:
         # Jetzt muss er theoretisch automatisch das richtige zweite Dreieck finden!
         t2 = findNextTriangleWithPoint(point, t)
+
+        if t2 == None:
+            print "shit shit shit..."
+            return triangles
+
         line2 = pointOnLine(point, t2)
 
         triangles = removeTriangleFromList(t2, triangles)
