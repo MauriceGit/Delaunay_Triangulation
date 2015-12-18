@@ -7,10 +7,11 @@ import copy
 import time
 import sys
 from matplotlib import path
+from PIL import Image, ImageDraw
 
 # working but slow!
 def pointInTriangle4(p,t):
-    
+
     m1 = np.array([ [1, t[0][0], t[0][1]],
                     [1, t[1][0], t[1][1]],
                     [1, p[0]   , p[1]   ]])
@@ -20,28 +21,28 @@ def pointInTriangle4(p,t):
     m3 = np.array([ [1, t[2][0], t[2][1]],
                     [1, t[0][0], t[0][1]],
                     [1, p[0]   , p[1]   ]])
-    
+
     return (np.linalg.det(m1) >= 0) == (np.linalg.det(m2) >= 0) == (np.linalg.det(m3) >= 0)
-    
+
 def pointInTriangle6(p, t):
     triangle = path.Path([t[0], t[1], t[2]])
     points = np.array([p[0], p[1]]).reshape(1, 2)
     res = triangle.contains_points(points)
     return res[0]
-    
+
 #def findTriangle(point, triangles):
 #    for t in triangles:
 #        if pointInTriangle6(point, t):
 #            return t
 #    print "Das sollte nicht passieren..."
-    
+
 def vecLen(v):
     return math.sqrt(v[0]**2 + v[1]**2)
-    
+
 def euclidDistance(p1, p2):
     p = (p2[0]-p1[0], p2[1]-p1[1])
     return vecLen(p)
-    
+
 def alreadyVisited(t, visited):
     for v in visited:
         if t == None or equal(t,v):
@@ -54,27 +55,62 @@ def getOuterPoint(nextT, thisT):
             return nextT[i]
     print "not happening..."
 
-def findTriangle2Rec(p, t, lastT):
-    
+def debugDrawPath(triangles, startT, p):
+    im = Image.new('RGB', (2000, 2000))
+    draw = ImageDraw.Draw(im)
+    lastT = triangles[0]
+    for t in triangles[1:]:
+        tmpP1 = ((lastT[0][0]+lastT[1][0]+lastT[2][0])/3.0, (lastT[0][1]+lastT[1][1]+lastT[2][1])/3.0)
+        tmpP2 = ((t[0][0]+t[1][0]+t[2][0])/3.0, (t[0][1]+t[1][1]+t[2][1])/3.0)
+        draw.polygon((t[0],t[1],t[2]), fill=None, outline='blue')
+        draw.line([tmpP1, tmpP2],fill='white')
+        lastT = t
+
+    tmpP = (int((startT[0][0]+startT[1][0]+startT[2][0])/3.0), int((startT[0][1]+startT[1][1]+startT[2][1])/3.0))
+    print "Tuple:","(",startT[0],startT[1],startT[2],")"
+    print tmpP
+    draw.arc((p[0], p[1], p[0]+20,p[1]+20),0,360,fill='red')
+    draw.arc((tmpP[0], tmpP[1], tmpP[0]+20,tmpP[1]+20),0,360,fill='green')
+
+    im.save("some_lines.jpg")
+
+def getCenterPoint(t):
+    return ((t[0][0]+t[1][0]+t[2][0])/3, (t[0][1]+t[1][1]+t[2][1])/3)
+
+def normVectorFromPoints(p1, p2):
+    v = (p2[0]-p1[0], p2[1]-p1[1])
+    return v/np.linalg.norm(v)
+
+def tupleToString(t):
+    return "{" + str(t[0]) + ", " + str(t[1]) + ", " + str(t[0]) + "}"
+
+def printTriangleList(l):
+    for t in l:
+        if t != None:
+            print tupleToString(t),
+    print ""
+
+def findTriangle2Rec(p, t, lastT, debug):
+
     count = 0
-    
     visited = []
-    
+    index = 0
+
     while True:
+        upStream = False
+        count += 1
         if t != None and pointInTriangle6(p, t):
-            #print "visited:", len(visited)
+            #print count
             return t
-        
-        visited.append(t)
-        
+
         d1 = sys.maxint
         d2 = sys.maxint
-        
+
         # Welches anliegende Dreieck ist näher an p:
         t1 = t[3]
         t2 = t[4]
         t3 = t[5]
-        
+
         if equal(t1, lastT):
             nextT1 = t2
             nextT2 = t3
@@ -85,56 +121,76 @@ def findTriangle2Rec(p, t, lastT):
             else:
                 nextT1 = t1
                 nextT2 = t2
-        
+
+        visitedT1 = alreadyVisited(nextT1, visited)
+        visitedT2 = alreadyVisited(nextT2, visited)
+
+        # mehr ein: isInList(t)
+        if not alreadyVisited(t, visited):
+            visited[:0] = [t]
+
         if nextT1 == None and nextT2 == None:
             print "shit."
-        
+
         # Wenn einer von beiden None ist und der andere nicht.
-        lastT = t
         if nextT1 == None and nextT2 != None:
-            t = nextT2
-            continue
+            if not visitedT2:
+                t = nextT2
+                continue
+            else:
+                upStream = True
+
         if nextT2 == None and nextT1 != None:
-            t = nextT1
-            continue
-        
-        #  Euklidische Distanz.
-        if nextT1 != None:
-            #outerPoint = getOuterPoint(nextT1, t)
-            tmpP = ((nextT1[0][0]+nextT1[1][0]+nextT1[2][0])/3.0, (nextT1[0][1]+nextT1[1][1]+nextT1[2][1])/3.0)
-            d1 = euclidDistance(tmpP, p)
-            #d1 = euclidDistance(outerPoint, p)
-        
-        if nextT2 != None:
-            #outerPoint = getOuterPoint(nextT2, t)
-            tmpP = ((nextT2[0][0]+nextT2[1][0]+nextT2[2][0])/3.0, (nextT2[0][1]+nextT2[1][1]+nextT2[2][1])/3.0)
-            d2 = euclidDistance(tmpP, p)
-            #d2 = euclidDistance(outerPoint, p)
-        
-        # jetzt ist keiner von beiden None!
-        if d1 < d2:
-            if alreadyVisited(nextT1, visited):
-                t = nextT2
-            else:
-                if alreadyVisited(nextT2, visited):
-                    #print "bullshit"
-                    t = nextT2
+            if not visitedT1:
                 t = nextT1
-        else:
-            if alreadyVisited(nextT2, visited):
-                t = nextT1
+                continue
             else:
-                if alreadyVisited(nextT1, visited):
-                    #print "bullshit"
-                    t = nextT1
+                upStream = True
+
+        if not upStream:
+            # Vektorrechnung um zu überprüfen, welche Richtung mehr in Richtung
+            # des Ziels führt. In die Richtung wollen wir gehen!
+            herePos   = getCenterPoint(t)
+            targetPos = p
+            dir1Pos   = getCenterPoint(nextT1)
+            dir2Pos   = getCenterPoint(nextT2)
+            dir1      = normVectorFromPoints(herePos, dir1Pos)
+            dir2      = normVectorFromPoints(herePos, dir2Pos)
+            targetVector = normVectorFromPoints(herePos, targetPos)
+            dot1 = np.dot(targetVector, dir1)
+            dot2 = np.dot(targetVector, dir2)
+
+            # Je größer das Skalarprodukt ist, desto mehr geht der Richtungsvektor
+            # in Richtung des Zielpunktes und wir nähern uns immer stärker an!
+            if dot1 > dot2 and not visitedT1:
+                lastT = t
+                t = nextT1
+                continue
+
+            if dot2 > dot1 and not visitedT2:
+                lastT = t
                 t = nextT2
-        
-        count += 1
-    
+                continue
+
+            if not visitedT1:
+                lastT = t
+                t = nextT1
+                continue
+
+            if not visitedT2:
+                lastT = t
+                t = nextT2
+                continue
+
+        lastT = t
+        index += 1
+        t = visited[index]
+
 # Might be faster...
-def findTriangle2(point, triangles):
+def findTriangle2(point, triangles, debug):
     # Start with first triangle Doesn't matter which one.
-    return findTriangle2Rec(point, triangles[0], None)
+    #print len(triangles),
+    return findTriangle2Rec(point, triangles[0], None, debug)
 
 def dist(p1, p2):
     a = (p2[0]-p1[0])**2 + (p2[1]-p1[1])**2
@@ -145,11 +201,11 @@ def pointOnLine2(p, p1, p2):
     d2 = dist(p, p2)
     d3 = dist(p1,p2)
     return math.fabs(d3 - (d1+d2)) <= 0.0000001
-   
+
 def equal(t1, t2):
     return (t1 == None and t2 == None) or (t1 != None and t2 != None and (t1[0] == t2[0] and t1[1] == t2[1] and t1[2] == t2[2]))
 
-# Muss ich selber implementieren, da nur die ersten 3 Komponenten auf 
+# Muss ich selber implementieren, da nur die ersten 3 Komponenten auf
 # Gleichheit getestet werden sollen!
 def removeTriangleFromList(triangle, triangles):
     for t in triangles:
@@ -168,7 +224,7 @@ def pointOnLine(p, t):
     if pointOnLine2(p, t[2], t[0]):
         return 1
     return -1
-    
+
 # prueft, ob t p1 und p2 und not p3 matched.
 def matchT(t, p1, p2, notp3):
     b1 = False
@@ -204,9 +260,9 @@ def notValid(t, p):
              [t[1][0],t[1][1],t[1][0]**2+t[1][1]**2,1],
              [t[2][0],t[2][1],t[2][0]**2+t[2][1]**2,1],
              [p[0]   ,p[1]   ,p[0]**2   +p[1]**2   ,1]])
-             
+
     return np.linalg.det(matrix) > 0
-    
+
 # Prüft, ob die uebergebenen zwei Punkte zu t gehören.
 def pointsMatchTriangle(p1, p2, t):
     return t != None and (p1 == t[0] or p1 == t[1] or p1 == t[2]) and (p2 == t[0] or p2 == t[1] or p2 == t[2])
@@ -225,35 +281,35 @@ def getReferenceWithPoints(p1, p2, t):
 def legalize(triangles, t):
     # check nextI in nextT auf Validitaet.
     nextT = getReferenceWithPoints(t[1], t[2], t)
-    
+
     if nextT == None:
         return triangles
-    
+
     (b, nextI) = matchT(nextT, t[1], t[2], t[0])
     p = nextT[nextI]
-    
+
     if notValid(t, p):
-        
+
         triangles = removeTriangleFromList(t, triangles)
         triangles = removeTriangleFromList(nextT, triangles)
-        
+
         t1 = [t[0], t[1], p, getReferenceWithPoints(t[0], t[1], t), getReferenceWithPoints(t[1], p, nextT)]
         t2 = [t[0], p, t[2], getReferenceWithPoints(t[0], t[2], t), getReferenceWithPoints(t[2], p, nextT), t1]
-        
-        t1.append(t2)        
-        
+
+        t1.append(t2)
+
         changeReferenceFromTo(t, t1, t1[3])
         changeReferenceFromTo(nextT, t1, t1[4])
-        
+
         changeReferenceFromTo(t, t2, t2[3])
         changeReferenceFromTo(nextT, t2, t2[4])
-        
+
         triangles.append(t1)
         triangles.append(t2)
-        
+
         triangles = legalize(triangles, t1)
         triangles = legalize(triangles, t2)
-    return triangles    
+    return triangles
 
 # verändert in t die veraltete Referenz fromT nach toT.
 def changeReferenceFromTo(fromT, toT, t):
@@ -264,99 +320,99 @@ def changeReferenceFromTo(fromT, toT, t):
 
 def findNextTriangleWithPoint(point, t):
     for i in range(3, 6):
-        if pointInTriangle6(point, t[i]):
+        if t != None and pointInTriangle6(point, t[i]):
             return t[i]
     print "shit fuck"
-        
+
 
 # Fuegt einen Punkt in eine bestehende Triangulierung ein und
 # korrigiert moegliche auftretende Fehler.
-def insertPointIntoTriangles(point, triangles):
-    t = findTriangle2(point, triangles)
+def insertPointIntoTriangles(point, triangles, debug):
+    t = findTriangle2(point, triangles, debug)
     line = pointOnLine(point, t)
-    
+
     triangles = removeTriangleFromList(t, triangles)
     if line == -1:
         # Hier ganz normal in das Dreieck einfuegen:
         t1 = [point, t[0], t[1], getReferenceWithPoints(t[0], t[1], t)]
         t2 = [point, t[1], t[2], getReferenceWithPoints(t[1], t[2], t), t1]
         t3 = [point, t[2], t[0], getReferenceWithPoints(t[2], t[0], t), t1, t2]
-        
+
         changeReferenceFromTo(t, t1, t1[3])
         changeReferenceFromTo(t, t2, t2[3])
         changeReferenceFromTo(t, t3, t3[3])
-        
+
         t2.append(t3)
         t1.append(t2)
         t1.append(t3)
-                
+
         ################################################################
-        
+
         triangles.append(t1)
         triangles.append(t2)
         triangles.append(t3)
-        
+
         triangles = legalize(triangles, t1)
         triangles = legalize(triangles, t2)
         triangles = legalize(triangles, t3)
-        
+
     else:
         #print "Sonderfall: Punkt auf Kante zweier Dreiecke."
         # Hier der Sonderfall: Punkt auf der Kante:
         # Jetzt muss er theoretisch automatisch das richtige zweite Dreieck finden!
         t2 = findNextTriangleWithPoint(point, t)
         line2 = pointOnLine(point, t2)
-        
+
         triangles = removeTriangleFromList(t2, triangles)
-        
+
         tt1 = [point, t[line], t[(line+1)%3],     getReferenceWithPoints(t[line], t[(line+1)%3], t)]
-        tt2 = [point, t[(line+2)%3], t[line],     getReferenceWithPoints(t[(line+2)%3], t[line], t), tt1]        
-        
-        tt3 = [point, t2[line2], t2[(line2+1)%3], getReferenceWithPoints(t2[line2], t2[(line2+1)%3], t2)]        
+        tt2 = [point, t[(line+2)%3], t[line],     getReferenceWithPoints(t[(line+2)%3], t[line], t), tt1]
+
+        tt3 = [point, t2[line2], t2[(line2+1)%3], getReferenceWithPoints(t2[line2], t2[(line2+1)%3], t2)]
         tt4 = [point, t2[(line2+2)%3], t2[line2], getReferenceWithPoints(t2[(line2+2)%3], t2[line2], t2), tt3]
-        
+
         tt1.append(tt2)
         tt3.append(tt4)
-        
+
         changeReferenceFromTo(t,  tt1, tt1[3])
         changeReferenceFromTo(t,  tt2, tt2[3])
         changeReferenceFromTo(t2, tt3, tt3[3])
         changeReferenceFromTo(t2, tt4, tt4[3])
-                
+
         if getReferenceWithPoints(point, t[(line+1)%3], tt3) != None:
             tt1.append(getReferenceWithPoints(point, t[(line+1)%3], tt3))
             tt2.append(getReferenceWithPoints(point, t[(line+2)%3], tt4))
         else:
             tt1.append(getReferenceWithPoints(point, t[(line+1)%3], tt4))
             tt2.append(getReferenceWithPoints(point, t[(line+2)%3], tt3))
-        
+
         if getReferenceWithPoints(point, t2[(line2+1)%3], tt1) != None:
             tt3.append(getReferenceWithPoints(point, t2[(line2+1)%3], tt1))
             tt4.append(getReferenceWithPoints(point, t2[(line2+2)%3], tt2))
         else:
             tt3.append(getReferenceWithPoints(point, t2[(line2+1)%3], tt2))
             tt4.append(getReferenceWithPoints(point, t2[(line2+2)%3], tt1))
-        
+
         triangles.append(tt1)
         triangles.append(tt2)
         triangles.append(tt3)
         triangles.append(tt4)
-        
+
         triangles = legalize(triangles, tt1)
         triangles = legalize(triangles, tt2)
         triangles = legalize(triangles, tt3)
         triangles = legalize(triangles, tt4)
-        
-        
-    
+
+
+
     return triangles
 
 # Fuegt inkrementell Punkte in die Triangulierung ein.
 def createDelaunayTriangulation(points, triangle):
     triangles = [triangle]
     for point in points:
-        triangles = insertPointIntoTriangles(point, triangles)
-    return triangles    
+        triangles = insertPointIntoTriangles(point, triangles, False)
+    return triangles
 
 # Loescht alle Dreiecke, die sich auf das initiale Dreieck beziehen.
 def removeAllInitTriangles(triangles, t):
@@ -396,18 +452,18 @@ def delaunay(points):
     m = maxCoord(points)
     # Initiales Dreieck:
     t = [(-3*m,-3*m), (3*m,0), (0,3*m), None, None, None]
-    
+
     # Datenstruktur der Dreiecksliste:
     # type Ref       = Triangle
     # type Triangle  = [a,b,c, Ref, Ref, Ref]
-    # type Triangles = [Triangle]   
-    
+    # type Triangles = [Triangle]
+
     # O( ... )
     triangles = createDelaunayTriangulation(points, t)
-        
+
     triangles = removeAllInitTriangles(triangles, t)
     triangles = removeOutOfBoundsTriangles(triangles, -m, -m, m, m)
-    
+
     return triangles
 
 

@@ -6,37 +6,58 @@ from delaunay import delaunay
 import random as rand
 import time
 
-x = 10000
-y = 10000
+def generateRandomPoints(count, sizeX, sizeY):
+    points = []
+    start = time.clock()
+    for i in range(count):
+        p = (rand.randint(0,sizeX),rand.randint(0,sizeY))
+        if not p in points:
+            points.append(p)
+    print "Punkte generieren: %.2fs" % (time.clock()-start)
+    return points
 
-start = time.clock()
+def drawPoints(points, filename, sizeX, sizeY):
+    im = Image.new('RGB', (sizeX*10, sizeY*10))
+    draw = ImageDraw.Draw(im)
+    for p in debugPoints:
+        px = p[0]*10
+        py = p[1]*10
+        draw.arc((px, py, px+20,py+20),0,360,fill='white')
+    im.save(filename)
 
-points = []
-for i in range(50):
-	p = (rand.randint(0,x),rand.randint(0,y))
-	if not p in points:
-		points.append(p)
+def drawTriangulation(triangles, filename, sizeX, sizeY):
+    im = Image.new('RGB', (sizeX, sizeY))
+    draw = ImageDraw.Draw(im)
+    start = time.clock()
+    for t in triangles:
+        r = rand.randint(0,255)
+        g = rand.randint(0,255)
+        b = rand.randint(0,255)
+        draw.polygon((t[0],t[1],t[2]), fill=(r,g,b,255))
+    im.save(filename)
+    print "Dreiecke zeichnen: %.2fs" % (time.clock()-start)
 
-#points.append((0,0))
-#points.append((0,y))
-#points.append((x,0))
-#points.append((x,y))
+def generateTriangles(points):
+    start = time.clock()
+    triangles = delaunay(points)
+    print "Delaunay-Triangulierung: %.2fs" % (time.clock()-start)
+    return triangles
 
-print "Punkte generieren: %.2fs" % (time.clock()-start)
-start = time.clock()
 
-triangles = delaunay(points)
+########################################################################
+########################################################################
+########################################################################
 
-print "Delaunay-Triangulierung: %.2fs" % (time.clock()-start)
-start = time.clock()
 
-im = Image.new('RGB', (x, y))
-draw = ImageDraw.Draw(im)
+sizeX = 10000
+sizeY = 10000
+pointCount = 2000
 
-for t in triangles:
-	draw.polygon((t[0],t[1],t[2]), fill=(rand.randint(0,255),rand.randint(0,255),rand.randint(0,255),255))
-	#draw.polygon(t, outline='red')
+points = generateRandomPoints(pointCount, sizeX, sizeY)
 
-print "Dreiecke zeichnen: %.2fs" % (time.clock()-start)
+#drawPoints(debugPoints, "debug_out.jpg", sizeX, sizeY)
 
-im.save('triangle_fast.jpg')
+triangles = generateTriangles(points)
+
+drawTriangulation(triangles, "triangle_fast.jpg", sizeX, sizeY)
+
