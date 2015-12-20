@@ -194,8 +194,8 @@ def delaunayFromImage(filename):
     drawImageColoredTriangles(triangles, "colored_" + filename, colorIm, multiplier)
 
 if __name__ == '__main__':
-    filename = "empuriabrava_01_small.jpg"
-    delaunayFromImage(filename)
+    filename = "colored_empuriabrava_01_small.jpg"
+    #delaunayFromImage(filename)
     autocontrastImage(filename)
     equalizeImage(filename)
 
