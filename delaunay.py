@@ -187,6 +187,8 @@ def findTriangle2Rec(p, t, lastT, debug):
 
         lastT = t
         index += 1
+        if index >= len(visited):
+            index = 0
         t = visited[index]
 
 # Might be faster...

@@ -113,14 +113,13 @@ def findPointsFromImage(im):
         for col in range(len(pix[row])):
 
             v =  pix[row][col]
-            v = v**2.2 / float(2**18)
+            v = v**2.1 / float(2**18)
             if np.random.random() < v:
                 points.append((col, row))
 
     print "Anzahl erzeugter Punkte:", len(points)
     print "Punkte extrahieren: %.2fs" % (time.clock()-start)
     return points
-
 
 def loadAndFilterImage(name):
     start = time.clock()
@@ -179,8 +178,8 @@ def equalizeImage(filename):
     im = ImageOps.equalize(im)
     im.save("equalized_" + filename)
 
-def delaunayFromImage():
-    (colorIm, blackIm) = loadAndFilterImage("sunset2_small.jpg")
+def delaunayFromImage(filename):
+    (colorIm, blackIm) = loadAndFilterImage(filename)
     points = findPointsFromImage(blackIm)
     triangles = generateTriangles(points)
 
@@ -191,16 +190,14 @@ def delaunayFromImage():
     # Alle Werte (besonder inklusive Bildgröße) werden hochskaliert.
     multiplier = 10
     (width, height) = colorIm.size
-    drawTriangulation(triangles, "triangle_fast.jpg", width, height, multiplier)
-    drawImageColoredTriangles(triangles, "triangle_colored.jpg", colorIm, multiplier)
+    drawTriangulation(triangles, "random_" + filename, width, height, multiplier)
+    drawImageColoredTriangles(triangles, "colored_" + filename, colorIm, multiplier)
 
 if __name__ == '__main__':
-    #delaunayFromImage()
-    autocontrastImage("triangle_colored.jpg")
-    equalizeImage("triangle_colored.jpg")
-    #im = Image.open("triangle_colored.jpg")
-    #im = brightenImage(im, 20.0)
-    #im.save("triangle_colored.jpg")
+    filename = "empuriabrava_01_small.jpg"
+    delaunayFromImage(filename)
+    autocontrastImage(filename)
+    equalizeImage(filename)
 
 
 
