@@ -99,9 +99,10 @@ def generateTriangles(points):
     return triangles
 
 # Der Faktor, der die Anzahl generierter Punkte bestimmt ist der Exponent von v.
+# Auf ein Bild der Auflösung 1000x750:
 # 1.0 ~ 80   Punkte
 # 1.5 ~ 500  Punkte
-# 2.0 ~
+# 2.0 ~ 3000 Punkte
 # 2.2 ~ 9500 Punkte
 def findPointsFromImage(im):
     start = time.clock()
@@ -169,7 +170,7 @@ def saveTriangleListToFile(triangles, filename):
         pickle.dump(triangles, f)
 
 def delaunayFromImage():
-    (colorIm, blackIm) = loadAndFilterImage("test_image_small.jpg")
+    (colorIm, blackIm) = loadAndFilterImage("sunset_small.jpg")
     points = findPointsFromImage(blackIm)
     triangles = generateTriangles(points)
 
