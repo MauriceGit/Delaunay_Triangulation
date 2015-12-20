@@ -79,7 +79,11 @@ def getCenterPoint(t):
 
 def normVectorFromPoints(p1, p2):
     v = (p2[0]-p1[0], p2[1]-p1[1])
-    return v/np.linalg.norm(v)
+    div = np.linalg.norm(v)
+    if abs(div) < 0.00001:
+        return v
+    else:
+        return v / div
 
 def tupleToString(t):
     return "{" + str(t[0]) + ", " + str(t[1]) + ", " + str(t[0]) + "}"
@@ -100,7 +104,6 @@ def findTriangle2Rec(p, t, lastT, debug):
         upStream = False
         count += 1
         if t != None and pointInTriangle6(p, t):
-            #print count
             return t
 
         d1 = sys.maxint
@@ -189,7 +192,6 @@ def findTriangle2Rec(p, t, lastT, debug):
 # Might be faster...
 def findTriangle2(point, triangles, debug):
     # Start with first triangle Doesn't matter which one.
-    #print len(triangles),
     return findTriangle2Rec(point, triangles[0], None, debug)
 
 def dist(p1, p2):
@@ -320,7 +322,7 @@ def changeReferenceFromTo(fromT, toT, t):
 
 def findNextTriangleWithPoint(point, t):
     for i in range(3, 6):
-        if t != None and pointInTriangle6(point, t[i]):
+        if t != None and t[i] != None and pointInTriangle4(point, t[i]):
             return t[i]
     print "shit fuck"
 
@@ -328,9 +330,11 @@ def findNextTriangleWithPoint(point, t):
 # Fuegt einen Punkt in eine bestehende Triangulierung ein und
 # korrigiert moegliche auftretende Fehler.
 def insertPointIntoTriangles(point, triangles, debug):
+    # O(n^2) aber Omega(n logn)
     t = findTriangle2(point, triangles, debug)
     line = pointOnLine(point, t)
 
+    # Hier machen wir auf jeden Fall O(n^2) draus...
     triangles = removeTriangleFromList(t, triangles)
     if line == -1:
         # Hier ganz normal in das Dreieck einfuegen:
@@ -438,16 +442,17 @@ def maxCoord(points):
         mi = min(min(p), mi)
     return max(ma, math.fabs(mi))
 
+def pointInRange(p, minX, minY, maxX, maxY):
+    return p[0] < maxX and p[1] < maxY and p[0] > minX and p[1] > minY
+
 # Es kommt vor, dass Dreiecke erstellt werden, die die Grenzen ueberschreiten...
 # Die werden erstmal manuell geloescht.
 def removeOutOfBoundsTriangles(triangles, minX, minY, maxX, maxY):
+    newTriangles = []
     for t in triangles:
-        for i in range(3):
-            p = t[i]
-            if p[0] > maxX or p[1] > maxY or p[0] < minX or p[1] < minY:
-                if t in triangles:
-                    triangles.remove(t)
-    return triangles
+        if pointInRange(t[0], minX, minY, maxX, maxY) and pointInRange(t[1], minX, minY, maxX, maxY) and pointInRange(t[2], minX, minY, maxX, maxY):
+            newTriangles.append((t[0],t[1],t[2]))
+    return newTriangles
 
 # Erstellt eine Delaunay-Triangulierung der uebergebenen Punkte!
 # Soll im Endeffekt am liebsten in O(n logn) laufen...
@@ -466,8 +471,10 @@ def delaunay(points):
     # O( ... )
     triangles = createDelaunayTriangulation(points, t)
 
+    # O(n)
     triangles = removeAllInitTriangles(triangles, t)
-    triangles = removeOutOfBoundsTriangles(triangles, -m, -m, m, m)
+    # O(n)
+    triangles = removeOutOfBoundsTriangles(triangles, 0, 0, m, m)
 
     return triangles
 
