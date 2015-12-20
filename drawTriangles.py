@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-from PIL import Image, ImageDraw, ImageFilter, ImageEnhance
+from PIL import Image, ImageDraw, ImageFilter, ImageEnhance, ImageOps
 from delaunay import delaunay
 import random as rand
 import time
@@ -89,7 +89,7 @@ def drawImageColoredTriangles(triangles, filename, origIm, multiplier):
         p2 = tuple(map(lambda x:x*multiplier, t[2]))
         drawT = (p0, p1, p2)
         draw.polygon(drawT, fill=(r,g,b,255))
-    im = brightenImage(im, 7.0)
+    im = brightenImage(im, 3.0)
     im.save(filename)
 
 def generateTriangles(points):
@@ -169,8 +169,18 @@ def saveTriangleListToFile(triangles, filename):
     with open(filename, 'w') as f:
         pickle.dump(triangles, f)
 
+def autocontrastImage(filename):
+    im = Image.open(filename)
+    im = ImageOps.autocontrast(im)
+    im.save("autocontrasted_" + filename)
+
+def equalizeImage(filename):
+    im = Image.open(filename)
+    im = ImageOps.equalize(im)
+    im.save("equalized_" + filename)
+
 def delaunayFromImage():
-    (colorIm, blackIm) = loadAndFilterImage("sunset_small.jpg")
+    (colorIm, blackIm) = loadAndFilterImage("sunset2_small.jpg")
     points = findPointsFromImage(blackIm)
     triangles = generateTriangles(points)
 
@@ -185,8 +195,9 @@ def delaunayFromImage():
     drawImageColoredTriangles(triangles, "triangle_colored.jpg", colorIm, multiplier)
 
 if __name__ == '__main__':
-    delaunayFromImage()
-
+    #delaunayFromImage()
+    autocontrastImage("triangle_colored.jpg")
+    equalizeImage("triangle_colored.jpg")
     #im = Image.open("triangle_colored.jpg")
     #im = brightenImage(im, 20.0)
     #im.save("triangle_colored.jpg")
