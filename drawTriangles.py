@@ -37,7 +37,7 @@ def drawPoints(points, filename, sizeX, sizeY):
         px = p[0]*10
         py = p[1]*10
         draw.arc((px, py, px+20,py+20),0,360,fill='white')
-    im.save(filename)
+    im.save(filename, "JPEG")
 
 def drawTriangulation(triangles, filename, sizeX, sizeY, multiplier):
     im = Image.new('RGB', (sizeX*multiplier, sizeY*multiplier))
@@ -52,7 +52,7 @@ def drawTriangulation(triangles, filename, sizeX, sizeY, multiplier):
         p2 = tuple(map(lambda x:x*multiplier, t[2]))
         drawT = (p0, p1, p2)
         draw.polygon(drawT, fill=(r,g,b,255))
-    im.save(filename)
+    im.save(filename, "JPEG")
     print "Dreiecke zeichnen: %.2fs" % (time.clock()-start)
 
 def getCenterPoint(t):
@@ -90,7 +90,7 @@ def drawImageColoredTriangles(triangles, filename, origIm, multiplier):
         drawT = (p0, p1, p2)
         draw.polygon(drawT, fill=(r,g,b,255))
     im = brightenImage(im, 3.0)
-    im.save(filename)
+    im.save(filename, "JPEG")
 
 def generateTriangles(points):
     start = time.clock()
@@ -169,23 +169,34 @@ def saveTriangleListToFile(triangles, filename):
         pickle.dump(triangles, f)
 
 def autocontrastImage(filename):
+    start = time.clock()
     im = Image.open(filename)
     im = ImageOps.autocontrast(im)
-    im.save("autocontrasted_" + filename)
+    im.save("autocontrasted_" + filename, "JPEG")
+    print "Autocontrast Image: %.2fs" % (time.clock()-start)
 
 def equalizeImage(filename):
+    start = time.clock()
     im = Image.open(filename)
     im = ImageOps.equalize(im)
-    im.save("equalized_" + filename)
+    im.save("equalized_" + filename, "JPEG")
+    print "Equalize Image: %.2fs" % (time.clock()-start)
+
+def resizeImage(filename, longestSide):
+    im = Image.open(filename)
+    (width, height) = im.size
+    ratioX = float(longestSide) / width
+    ratioY = float(longestSide) / height
+    ratio = min(ratioX, ratioY)
+    im.thumbnail((width*ratio, height*ratio), Image.ANTIALIAS)
+    newFilename = "small_" + filename
+    im.save(newFilename, "JPEG")
+    return newFilename
 
 def delaunayFromImage(filename):
     (colorIm, blackIm) = loadAndFilterImage(filename)
     points = findPointsFromImage(blackIm)
     triangles = generateTriangles(points)
-
-    #saveTriangleListToFile(triangles, "triangles.txt")
-    #triangles = readTriangleListFromFile("triangles.txt")
-    #printTriangleList(triangles)
 
     # Alle Werte (besonder inklusive Bildgröße) werden hochskaliert.
     multiplier = 10
@@ -194,10 +205,11 @@ def delaunayFromImage(filename):
     drawImageColoredTriangles(triangles, "colored_" + filename, colorIm, multiplier)
 
 if __name__ == '__main__':
-    filename = "colored_empuriabrava_01_small.jpg"
-    #delaunayFromImage(filename)
-    autocontrastImage(filename)
-    equalizeImage(filename)
+    filename = "sunset_meta.jpg"
+    filename = resizeImage(filename, 1000)
+    delaunayFromImage(filename)
+    autocontrastImage("colored_" + filename)
+    equalizeImage("colored_" + filename)
 
 
 

@@ -92,7 +92,12 @@ def printTriangleList(l):
     for t in l:
         if t != None:
             print tupleToString(t),
+        else:
+            print "None",
     print ""
+
+def isEmpty(t):
+    return t == None or (t[0] == None and t[1] == None and t[2] == None)
 
 def findTriangle2Rec(p, t, lastT, debug):
 
@@ -103,7 +108,7 @@ def findTriangle2Rec(p, t, lastT, debug):
     while True:
         upStream = False
         count += 1
-        if t != None and pointInTriangle6(p, t):
+        if not isEmpty(t) and pointInTriangle6(p, t):
             return t
 
         d1 = sys.maxint
@@ -130,7 +135,7 @@ def findTriangle2Rec(p, t, lastT, debug):
 
         # mehr ein: isInList(t)
         if not alreadyVisited(t, visited):
-            visited[:0] = [t]
+            visited.append(t)
 
         if nextT1 == None and nextT2 == None:
             print "shit."
@@ -150,7 +155,7 @@ def findTriangle2Rec(p, t, lastT, debug):
             else:
                 upStream = True
 
-        if not upStream:
+        if not upStream and not isEmpty(t):
             # Vektorrechnung um zu überprüfen, welche Richtung mehr in Richtung
             # des Ziels führt. In die Richtung wollen wir gehen!
             herePos   = getCenterPoint(t)
@@ -186,15 +191,20 @@ def findTriangle2Rec(p, t, lastT, debug):
                 continue
 
         lastT = t
-        index += 1
-        if index >= len(visited):
-            index = 0
+        index -= 1
+        if index <= 0:
+            index = len(visited)-1
         t = visited[index]
+
+def firstNotNoneTriangle(triangles):
+    for t in triangles:
+        if not isEmpty(t):
+            return t
 
 # Might be faster...
 def findTriangle2(point, triangles, debug):
     # Start with first triangle Doesn't matter which one.
-    return findTriangle2Rec(point, triangles[0], None, debug)
+    return findTriangle2Rec(point, firstNotNoneTriangle(triangles), None, debug)
 
 def dist(p1, p2):
     a = (p2[0]-p1[0])**2 + (p2[1]-p1[1])**2
@@ -212,10 +222,31 @@ def equal(t1, t2):
 # Muss ich selber implementieren, da nur die ersten 3 Komponenten auf
 # Gleichheit getestet werden sollen!
 def removeTriangleFromList(triangle, triangles):
-    for t in triangles:
-        if equal(t, triangle):
-            triangles.remove(t)
+    #for t in triangles:
+    #    if equal(t, triangle):
+    #        triangles.remove(t)
+    #return triangles
+
+    # Einfach alle Referenzen auf das Dreieck löschen...
+    # Reicht das? Hmm... Dürfte eigentlich nicht aktuell.
+    # Müssen noch checken, dass Dreiecke mit nur None ignoriert werden!
+
+    #print "removed: " + tupleToString(triangle)
+
+    changeReferenceFromTo(triangle, None, triangle[3])
+    changeReferenceFromTo(triangle, None, triangle[4])
+    changeReferenceFromTo(triangle, None, triangle[5])
+    triangle[3] = None
+    triangle[4] = None
+    triangle[5] = None
+    triangle[0] = None
+    triangle[1] = None
+    triangle[2] = None
+
+
+
     return triangles
+
 
 # Ich nehm den Abstand von t0-p und t1-p und
 # wenn das zusammenaddiert t1-t0 ergibt, liegts drauf.
@@ -294,9 +325,6 @@ def legalize(triangles, t):
 
     if notValid(t, p):
 
-        triangles = removeTriangleFromList(t, triangles)
-        triangles = removeTriangleFromList(nextT, triangles)
-
         t1 = [t[0], t[1], p, getReferenceWithPoints(t[0], t[1], t), getReferenceWithPoints(t[1], p, nextT)]
         t2 = [t[0], p, t[2], getReferenceWithPoints(t[0], t[2], t), getReferenceWithPoints(t[2], p, nextT), t1]
 
@@ -307,6 +335,9 @@ def legalize(triangles, t):
 
         changeReferenceFromTo(t, t2, t2[3])
         changeReferenceFromTo(nextT, t2, t2[4])
+
+        triangles = removeTriangleFromList(t, triangles)
+        triangles = removeTriangleFromList(nextT, triangles)
 
         triangles.append(t1)
         triangles.append(t2)
@@ -333,11 +364,16 @@ def findNextTriangleWithPoint(point, t):
 # korrigiert moegliche auftretende Fehler.
 def insertPointIntoTriangles(point, triangles, debug):
     # O(n^2) aber Omega(n logn)
+    #print point
+    #printTriangleList(triangles)
+
     t = findTriangle2(point, triangles, debug)
     line = pointOnLine(point, t)
 
+
+
     # Hier machen wir auf jeden Fall O(n^2) draus...
-    triangles = removeTriangleFromList(t, triangles)
+    # triangles = removeTriangleFromList(t, triangles)
     if line == -1:
         # Hier ganz normal in das Dreieck einfuegen:
         t1 = [point, t[0], t[1], getReferenceWithPoints(t[0], t[1], t)]
@@ -358,6 +394,8 @@ def insertPointIntoTriangles(point, triangles, debug):
         triangles.append(t2)
         triangles.append(t3)
 
+        triangles = removeTriangleFromList(t, triangles)
+
         triangles = legalize(triangles, t1)
         triangles = legalize(triangles, t2)
         triangles = legalize(triangles, t3)
@@ -373,8 +411,6 @@ def insertPointIntoTriangles(point, triangles, debug):
             return triangles
 
         line2 = pointOnLine(point, t2)
-
-        triangles = removeTriangleFromList(t2, triangles)
 
         tt1 = [point, t[line], t[(line+1)%3],     getReferenceWithPoints(t[line], t[(line+1)%3], t)]
         tt2 = [point, t[(line+2)%3], t[line],     getReferenceWithPoints(t[(line+2)%3], t[line], t), tt1]
@@ -409,6 +445,9 @@ def insertPointIntoTriangles(point, triangles, debug):
         triangles.append(tt3)
         triangles.append(tt4)
 
+        triangles = removeTriangleFromList(t, triangles)
+        triangles = removeTriangleFromList(t2, triangles)
+
         triangles = legalize(triangles, tt1)
         triangles = legalize(triangles, tt2)
         triangles = legalize(triangles, tt3)
@@ -423,15 +462,6 @@ def createDelaunayTriangulation(points, triangle):
     triangles = [triangle]
     for point in points:
         triangles = insertPointIntoTriangles(point, triangles, False)
-    return triangles
-
-# Loescht alle Dreiecke, die sich auf das initiale Dreieck beziehen.
-def removeAllInitTriangles(triangles, t):
-    for i in range(3):
-        for t2 in triangles:
-            for j in range(3):
-                if t[i] == t2[j]:
-                    triangles.remove(t2)
     return triangles
 
 # Maximale Koordinate in irgendeine Richtung...
@@ -452,12 +482,16 @@ def pointInRange(p, minX, minY, maxX, maxY):
 def removeOutOfBoundsTriangles(triangles, minX, minY, maxX, maxY):
     newTriangles = []
     for t in triangles:
-        if pointInRange(t[0], minX, minY, maxX, maxY) and pointInRange(t[1], minX, minY, maxX, maxY) and pointInRange(t[2], minX, minY, maxX, maxY):
+        if not isEmpty(t) and pointInRange(t[0], minX, minY, maxX, maxY) and pointInRange(t[1], minX, minY, maxX, maxY) and pointInRange(t[2], minX, minY, maxX, maxY):
             newTriangles.append((t[0],t[1],t[2]))
     return newTriangles
 
 # Erstellt eine Delaunay-Triangulierung der uebergebenen Punkte!
 # Soll im Endeffekt am liebsten in O(n logn) laufen...
+# Datenstruktur der Dreiecksliste:
+# type Ref       = Triangle
+# type Triangle  = [a,b,c, Ref, Ref, Ref]
+# type Triangles = [Triangle]
 def delaunay(points):
     # maximale Ausdehnung der Koordinaten:
     # O(n)
@@ -465,16 +499,9 @@ def delaunay(points):
     # Initiales Dreieck:
     t = [(-3*m,-3*m), (3*m,0), (0,3*m), None, None, None]
 
-    # Datenstruktur der Dreiecksliste:
-    # type Ref       = Triangle
-    # type Triangle  = [a,b,c, Ref, Ref, Ref]
-    # type Triangles = [Triangle]
-
     # O( ... )
     triangles = createDelaunayTriangulation(points, t)
 
-    # O(n)
-    triangles = removeAllInitTriangles(triangles, t)
     # O(n)
     triangles = removeOutOfBoundsTriangles(triangles, 0, 0, m, m)
 
