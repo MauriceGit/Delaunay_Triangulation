@@ -198,7 +198,6 @@ def delaunayFromImage(filename):
     points = findPointsFromImage(blackIm)
     triangles = generateTriangles(points)
 
-    # Alle Werte (besonder inklusive Bildgröße) werden hochskaliert.
     multiplier = 10
     (width, height) = colorIm.size
     drawTriangulation(triangles, "random_" + filename, width, height, multiplier)
