@@ -221,17 +221,7 @@ def equal(t1, t2):
 
 # Muss ich selber implementieren, da nur die ersten 3 Komponenten auf
 # Gleichheit getestet werden sollen!
-def removeTriangleFromList(triangle, triangles):
-    #for t in triangles:
-    #    if equal(t, triangle):
-    #        triangles.remove(t)
-    #return triangles
-
-    # Einfach alle Referenzen auf das Dreieck löschen...
-    # Reicht das? Hmm... Dürfte eigentlich nicht aktuell.
-    # Müssen noch checken, dass Dreiecke mit nur None ignoriert werden!
-
-    #print "removed: " + tupleToString(triangle)
+def removeTriangleFromListImplicit(triangle):
 
     changeReferenceFromTo(triangle, None, triangle[3])
     changeReferenceFromTo(triangle, None, triangle[4])
@@ -242,11 +232,6 @@ def removeTriangleFromList(triangle, triangles):
     triangle[0] = None
     triangle[1] = None
     triangle[2] = None
-
-
-
-    return triangles
-
 
 # Ich nehm den Abstand von t0-p und t1-p und
 # wenn das zusammenaddiert t1-t0 ergibt, liegts drauf.
@@ -336,8 +321,8 @@ def legalize(triangles, t):
         changeReferenceFromTo(t, t2, t2[3])
         changeReferenceFromTo(nextT, t2, t2[4])
 
-        triangles = removeTriangleFromList(t, triangles)
-        triangles = removeTriangleFromList(nextT, triangles)
+        removeTriangleFromListImplicit(t)
+        removeTriangleFromListImplicit(nextT)
 
         triangles.append(t1)
         triangles.append(t2)
@@ -363,17 +348,11 @@ def findNextTriangleWithPoint(point, t):
 # Fuegt einen Punkt in eine bestehende Triangulierung ein und
 # korrigiert moegliche auftretende Fehler.
 def insertPointIntoTriangles(point, triangles, debug):
-    # O(n^2) aber Omega(n logn)
-    #print point
-    #printTriangleList(triangles)
 
+    # Läuft hoffentlich in Omega(logn). Wahrscheinlich aber noch in O(n)...
     t = findTriangle2(point, triangles, debug)
     line = pointOnLine(point, t)
 
-
-
-    # Hier machen wir auf jeden Fall O(n^2) draus...
-    # triangles = removeTriangleFromList(t, triangles)
     if line == -1:
         # Hier ganz normal in das Dreieck einfuegen:
         t1 = [point, t[0], t[1], getReferenceWithPoints(t[0], t[1], t)]
@@ -388,13 +367,11 @@ def insertPointIntoTriangles(point, triangles, debug):
         t1.append(t2)
         t1.append(t3)
 
-        ################################################################
-
         triangles.append(t1)
         triangles.append(t2)
         triangles.append(t3)
 
-        triangles = removeTriangleFromList(t, triangles)
+        removeTriangleFromListImplicit(t)
 
         triangles = legalize(triangles, t1)
         triangles = legalize(triangles, t2)
@@ -407,7 +384,6 @@ def insertPointIntoTriangles(point, triangles, debug):
         t2 = findNextTriangleWithPoint(point, t)
 
         if t2 == None:
-            print "shit shit shit..."
             return triangles
 
         line2 = pointOnLine(point, t2)
@@ -445,15 +421,13 @@ def insertPointIntoTriangles(point, triangles, debug):
         triangles.append(tt3)
         triangles.append(tt4)
 
-        triangles = removeTriangleFromList(t, triangles)
-        triangles = removeTriangleFromList(t2, triangles)
+        removeTriangleFromListImplicit(t)
+        removeTriangleFromListImplicit(t2)
 
         triangles = legalize(triangles, tt1)
         triangles = legalize(triangles, tt2)
         triangles = legalize(triangles, tt3)
         triangles = legalize(triangles, tt4)
-
-
 
     return triangles
 
@@ -481,9 +455,17 @@ def pointInRange(p, minX, minY, maxX, maxY):
 # Die werden erstmal manuell geloescht.
 def removeOutOfBoundsTriangles(triangles, minX, minY, maxX, maxY):
     newTriangles = []
+    good = 0
+    bad = 0
+    start = time.clock()
     for t in triangles:
         if not isEmpty(t) and pointInRange(t[0], minX, minY, maxX, maxY) and pointInRange(t[1], minX, minY, maxX, maxY) and pointInRange(t[2], minX, minY, maxX, maxY):
             newTriangles.append((t[0],t[1],t[2]))
+            good += 1
+        else:
+            bad += 1
+    print "Bad-Triangles entfernen: %.2fs" % (time.clock()-start)
+    print "good triangles:", good, " and bad triangles:", bad
     return newTriangles
 
 # Erstellt eine Delaunay-Triangulierung der uebergebenen Punkte!

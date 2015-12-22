@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-from PIL import Image, ImageDraw, ImageFilter, ImageEnhance, ImageOps
+from PIL import Image, ImageDraw, ImageFilter, ImageEnhance, ImageOps, ImageFile
 from delaunay import delaunay
 import random as rand
 import time
@@ -90,7 +90,8 @@ def drawImageColoredTriangles(triangles, filename, origIm, multiplier):
         drawT = (p0, p1, p2)
         draw.polygon(drawT, fill=(r,g,b,255))
     im = brightenImage(im, 3.0)
-    im.save(filename, "JPEG")
+    ImageFile.MAXBLOCK = im.size[0] * im.size[1]
+    im.save(filename, "JPEG", quality=100, optimize=True, progressive=True)
 
 def generateTriangles(points):
     start = time.clock()
