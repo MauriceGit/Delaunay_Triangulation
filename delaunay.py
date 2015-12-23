@@ -21,8 +21,8 @@ def pointInTriangle4(p,t):
     m3 = np.array([ [1, t[2][0], t[2][1]],
                     [1, t[0][0], t[0][1]],
                     [1, p[0]   , p[1]   ]])
-
-    return (np.linalg.det(m1) >= 0) == (np.linalg.det(m2) >= 0) == (np.linalg.det(m3) >= 0)
+    r = (np.linalg.det(m1) >= 0) == (np.linalg.det(m2) >= 0) == (np.linalg.det(m3) >= 0)
+    return r
 
 def pointInTriangle6(p, t):
     triangle = path.Path([t[0], t[1], t[2]])
@@ -60,13 +60,15 @@ def debugDrawPath(triangles, startT, p):
     draw = ImageDraw.Draw(im)
     lastT = triangles[0]
     for t in triangles[1:]:
-        tmpP1 = ((lastT[0][0]+lastT[1][0]+lastT[2][0])/3.0, (lastT[0][1]+lastT[1][1]+lastT[2][1])/3.0)
+        tmpP1 = ((lastT[0][0]+lastT[1][0]+lastT[2][0])/3.0,
+                 (lastT[0][1]+lastT[1][1]+lastT[2][1])/3.0)
         tmpP2 = ((t[0][0]+t[1][0]+t[2][0])/3.0, (t[0][1]+t[1][1]+t[2][1])/3.0)
         draw.polygon((t[0],t[1],t[2]), fill=None, outline='blue')
         draw.line([tmpP1, tmpP2],fill='white')
         lastT = t
 
-    tmpP = (int((startT[0][0]+startT[1][0]+startT[2][0])/3.0), int((startT[0][1]+startT[1][1]+startT[2][1])/3.0))
+    tmpP = (int((startT[0][0]+startT[1][0]+startT[2][0])/3.0),
+            int((startT[0][1]+startT[1][1]+startT[2][1])/3.0))
     print "Tuple:","(",startT[0],startT[1],startT[2],")"
     print tmpP
     draw.arc((p[0], p[1], p[0]+20,p[1]+20),0,360,fill='red')
@@ -109,6 +111,7 @@ def findTriangle2Rec(p, t, lastT, debug):
         upStream = False
         count += 1
         if not isEmpty(t) and pointInTriangle6(p, t):
+            print count,
             return t
 
         d1 = sys.maxint
@@ -204,7 +207,10 @@ def firstNotNoneTriangle(triangles):
 # Might be faster...
 def findTriangle2(point, triangles, debug):
     # Start with first triangle Doesn't matter which one.
-    return findTriangle2Rec(point, firstNotNoneTriangle(triangles), None, debug)
+
+    t = findTriangle2Rec(point, firstNotNoneTriangle(triangles), None, debug)
+    print "/", len(triangles)
+    return t
 
 def dist(p1, p2):
     a = (p2[0]-p1[0])**2 + (p2[1]-p1[1])**2
@@ -217,7 +223,9 @@ def pointOnLine2(p, p1, p2):
     return math.fabs(d3 - (d1+d2)) <= 0.0000001
 
 def equal(t1, t2):
-    return (t1 == None and t2 == None) or (t1 != None and t2 != None and (t1[0] == t2[0] and t1[1] == t2[1] and t1[2] == t2[2]))
+    return (t1 == None and t2 == None) or \
+           (t1 != None and t2 != None and (t1[0] == t2[0] and \
+            t1[1] == t2[1] and t1[2] == t2[2]))
 
 # Muss ich selber implementieren, da nur die ersten 3 Komponenten auf
 # Gleichheit getestet werden sollen!
@@ -285,7 +293,9 @@ def notValid(t, p):
 
 # Prüft, ob die uebergebenen zwei Punkte zu t gehören.
 def pointsMatchTriangle(p1, p2, t):
-    return t != None and (p1 == t[0] or p1 == t[1] or p1 == t[2]) and (p2 == t[0] or p2 == t[1] or p2 == t[2])
+    return t != None and \
+           (p1 == t[0] or p1 == t[1] or p1 == t[2]) and \
+           (p2 == t[0] or p2 == t[1] or p2 == t[2])
 
 # Bestimmt die Referenz, die quasi nach außen zeigt von dem neuen Dreieck aus.
 def getReferenceWithPoints(p1, p2, t):
@@ -310,8 +320,10 @@ def legalize(triangles, t):
 
     if notValid(t, p):
 
-        t1 = [t[0], t[1], p, getReferenceWithPoints(t[0], t[1], t), getReferenceWithPoints(t[1], p, nextT)]
-        t2 = [t[0], p, t[2], getReferenceWithPoints(t[0], t[2], t), getReferenceWithPoints(t[2], p, nextT), t1]
+        t1 = [t[0], t[1], p, getReferenceWithPoints(t[0], t[1], t),
+                             getReferenceWithPoints(t[1], p, nextT)]
+        t2 = [t[0], p, t[2], getReferenceWithPoints(t[0], t[2], t),
+                             getReferenceWithPoints(t[2], p, nextT), t1]
 
         t1.append(t2)
 
@@ -388,11 +400,15 @@ def insertPointIntoTriangles(point, triangles, debug):
 
         line2 = pointOnLine(point, t2)
 
-        tt1 = [point, t[line], t[(line+1)%3],     getReferenceWithPoints(t[line], t[(line+1)%3], t)]
-        tt2 = [point, t[(line+2)%3], t[line],     getReferenceWithPoints(t[(line+2)%3], t[line], t), tt1]
+        tt1 = [point, t[line], t[(line+1)%3],
+               getReferenceWithPoints(t[line], t[(line+1)%3], t)]
+        tt2 = [point, t[(line+2)%3], t[line],
+               getReferenceWithPoints(t[(line+2)%3], t[line], t), tt1]
 
-        tt3 = [point, t2[line2], t2[(line2+1)%3], getReferenceWithPoints(t2[line2], t2[(line2+1)%3], t2)]
-        tt4 = [point, t2[(line2+2)%3], t2[line2], getReferenceWithPoints(t2[(line2+2)%3], t2[line2], t2), tt3]
+        tt3 = [point, t2[line2], t2[(line2+1)%3],
+               getReferenceWithPoints(t2[line2], t2[(line2+1)%3], t2)]
+        tt4 = [point, t2[(line2+2)%3], t2[line2],
+               getReferenceWithPoints(t2[(line2+2)%3], t2[line2], t2), tt3]
 
         tt1.append(tt2)
         tt3.append(tt4)
@@ -459,13 +475,16 @@ def removeOutOfBoundsTriangles(triangles, minX, minY, maxX, maxY):
     bad = 0
     start = time.clock()
     for t in triangles:
-        if not isEmpty(t) and pointInRange(t[0], minX, minY, maxX, maxY) and pointInRange(t[1], minX, minY, maxX, maxY) and pointInRange(t[2], minX, minY, maxX, maxY):
+        if not isEmpty(t) and \
+            pointInRange(t[0], minX, minY, maxX, maxY) and \
+            pointInRange(t[1], minX, minY, maxX, maxY) and \
+            pointInRange(t[2], minX, minY, maxX, maxY):
             newTriangles.append((t[0],t[1],t[2]))
             good += 1
         else:
             bad += 1
     print "Bad-Triangles entfernen: %.2fs" % (time.clock()-start)
-    print "good triangles:", good, " and bad triangles:", bad
+    print "Good triangles:", good, " and bad triangles:", bad
     return newTriangles
 
 # Erstellt eine Delaunay-Triangulierung der uebergebenen Punkte!
