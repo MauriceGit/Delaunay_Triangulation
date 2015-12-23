@@ -111,7 +111,7 @@ def findTriangle2Rec(p, t, lastT, debug):
         upStream = False
         count += 1
         if not isEmpty(t) and pointInTriangle6(p, t):
-            print count,
+            #print count,
             return t
 
         d1 = sys.maxint
@@ -209,7 +209,7 @@ def findTriangle2(point, triangles, debug):
     # Start with first triangle Doesn't matter which one.
 
     t = findTriangle2Rec(point, firstNotNoneTriangle(triangles), None, debug)
-    print "/", len(triangles)
+    #print "/", len(triangles)
     return t
 
 def dist(p1, p2):
