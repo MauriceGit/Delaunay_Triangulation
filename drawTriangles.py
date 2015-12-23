@@ -3,6 +3,7 @@
 
 from PIL import Image, ImageDraw, ImageFilter, ImageEnhance, ImageOps, ImageFile
 from delaunay import delaunay
+from voronoi import createVoronoiFromDelaunay
 import random as rand
 import time
 import numpy as np
@@ -199,6 +200,8 @@ def delaunayFromImage(filename):
     points = findPointsFromImage(blackIm)
     triangles = generateTriangles(points)
 
+    createVoronoiFromDelaunay(triangles)
+
     multiplier = 10
     (width, height) = colorIm.size
     drawTriangulation(triangles, "random_" + filename, width, height, multiplier)
@@ -206,7 +209,7 @@ def delaunayFromImage(filename):
 
 if __name__ == '__main__':
     filename = "sunset_meta.jpg"
-    filename = resizeImage(filename, 1000)
+    filename = resizeImage(filename, 50)
     delaunayFromImage(filename)
     autocontrastImage("colored_" + filename)
     equalizeImage("colored_" + filename)

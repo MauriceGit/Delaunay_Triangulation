@@ -467,6 +467,12 @@ def maxCoord(points):
 def pointInRange(p, minX, minY, maxX, maxY):
     return p[0] < maxX and p[1] < maxY and p[0] > minX and p[1] > minY
 
+def triangleInRange(t, minX, minY, maxX, maxY):
+    return not isEmpty(t) and \
+            pointInRange(t[0], minX, minY, maxX, maxY) and \
+            pointInRange(t[1], minX, minY, maxX, maxY) and \
+            pointInRange(t[2], minX, minY, maxX, maxY)
+
 # Es kommt vor, dass Dreiecke erstellt werden, die die Grenzen ueberschreiten...
 # Die werden erstmal manuell geloescht.
 def removeOutOfBoundsTriangles(triangles, minX, minY, maxX, maxY):
@@ -475,11 +481,12 @@ def removeOutOfBoundsTriangles(triangles, minX, minY, maxX, maxY):
     bad = 0
     start = time.clock()
     for t in triangles:
-        if not isEmpty(t) and \
-            pointInRange(t[0], minX, minY, maxX, maxY) and \
-            pointInRange(t[1], minX, minY, maxX, maxY) and \
-            pointInRange(t[2], minX, minY, maxX, maxY):
-            newTriangles.append((t[0],t[1],t[2]))
+        if triangleInRange(t, minX, minY, maxX, maxY):
+            newT = [t[0],t[1],t[2], t[3], t[4], t[5]]
+            for i in range(3,6):
+                if not triangleInRange(newT[i], minX, minY, maxX, maxY):
+                    newT[i] = None
+            newTriangles.append(tuple(newT))
             good += 1
         else:
             bad += 1
