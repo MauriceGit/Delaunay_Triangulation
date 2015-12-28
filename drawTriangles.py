@@ -256,7 +256,7 @@ def voronoiFromTriangles(triangles):
     return polygons
 
 if __name__ == '__main__':
-    filename = "sunset_2.jpg"
+    filename = "feuerwerk.jpg"
     filename = resizeImage(filename, 1000)
     (colorIm, blackIm) = loadAndFilterImage(filename)
     (width, height) = colorIm.size
