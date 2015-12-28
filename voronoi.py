@@ -42,8 +42,10 @@ def calcIntersection(t):
     return line_intersection(pb1, pb2)
 
 def valid(t1, triangles):
+    if t1 == None:
+        return False
     for t in triangles:
-        if equalT(t, t1) or t1 == None:
+        if equalT(t, t1):
             return False
     return True
 
@@ -68,9 +70,10 @@ def printTNewline(t):
     print tupleToString(t)
 
 def getNextTriangle(p, t, lastT):
+    tmpP = p[:2]
     for i in range(3,6):
-        if valid(t, lastT):
-            if t[i][0] == p or t[i][1] == p or t[i][2] == p:
+        if valid(t[i], lastT):
+            if t[i][0] == tmpP or t[i][1] == tmpP or t[i][2] == tmpP:
                 return t[i]
     return None
 
@@ -104,41 +107,60 @@ def getTrianglesAroundPoint(p, t):
         thisT = nextT
     return triangles
 
+# Gets a list of triangles which is exactly one polygon or voronoi region!
+def triangleListToPolygon(triangles):
+    polygon = []
+    for t in triangles:
+        polygon.append(calcIntersection(t))
+    return polygon
 
-def calcPolygonRec(p, firstT, t, lastT):
+# Wrapps some calls and gives it a better single name.
+def constructPolygon(p, t):
+    return triangleListToPolygon(getTrianglesAroundPoint(p, t))
 
-    listOfIntersections = []
-    listOfTriangles = []
+# Adds a counter to each node of each triangle so we can transform the
+# triangles in linear time later on. This is also in O(n). Nothing lost.
+def prepareTrianglesForVoronoi(triangles):
 
-    while True:
-        intersection = calcIntersection(t)
+    for i in range(len(triangles)):
+        for j in range(3):
+            if len(triangles[i][j]) != 3:
+                triangles[i] = list(triangles[i])
+                triangles[i][j] = triangles[i][j] + (False,)
 
-        if intersection in listOfIntersections:
-            print "already in."
-            break
+    return triangles
 
-        listOfIntersections.append(intersection)
+# Adds a counter to each node of each triangle so we can transform the
+# triangles in linear time later on. This is also in O(n). Nothing lost.
+def cleanUpAfterVoronoi(triangles):
 
-        # calc next triangle to go to.
-        nextT = getNextTriangle(p, t, lastT)
+    for i in range(len(triangles)):
+        for j in range(3):
+            triangles[i][j] = triangles[i][j][:2]
 
-        if equalT(firstT, nextT):
-            print "yay"
-            break
+    return triangles
 
-        listOfTriangles.append(nextT)
+# Goes recursive through all triangles and creates a polygon for each node
+# which has not yet been visited.
+def createPolygonList(triangles):
 
-        lastT = t
-        t = nextT
+    polygons = []
+    for t in triangles:
+        for i in range(3):
+            if t[i][2] == False:
+                polygon = constructPolygon(t[i], t)
+                polygons.append(polygon)
+                t[i] = (t[i][0], t[i][1], True)
 
-    debugDrawPath(listOfTriangles, p)
+    return polygons
 
-    return listOfIntersections
+def isEmpty(t):
+    return t == None or (t[0] == None and t[1] == None and t[2] == None)
 
-# Calculates a polygon by following all references to triangles which contain the defined
-# point. Until we get back to the initial triangle. Then a closed polygon should be constructed.
-def calcOnePolygonAroundPoint(p, t):
-    return calcPolygonRec(p, t, t, None)
+def firstNotNoneTriangle(triangles):
+    for t in triangles:
+        if not isEmpty(t):
+            return t
 
 #
 # Gets a list of valid triangles (with the references to each other!)
@@ -146,13 +168,11 @@ def calcOnePolygonAroundPoint(p, t):
 #
 def createVoronoiFromDelaunay(triangles):
 
-    for t in triangles[:10]:
-        printTriangleList(getTrianglesAroundPoint(t[0], t))
-        #polygon = calcOnePolygonAroundPoint(t[0], t)
-        #print "len:",len(polygon),
-        #print polygon
+    triangles = prepareTrianglesForVoronoi(triangles)
+    polygons = createPolygonList(triangles)
+    triangles = cleanUpAfterVoronoi(triangles)
 
-
+    return polygons
 
 
 

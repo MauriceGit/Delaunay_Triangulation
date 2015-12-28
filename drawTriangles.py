@@ -73,6 +73,36 @@ def getTriangleColor(t, im):
     color = map(lambda x : int(x), color)
     return color
 
+def getPolygonColor(pol, im):
+
+    centerPoint = (0,0)
+    color = []
+    count = 0
+    #print ""
+
+    for p in pol:
+        if p[0] >= im.size[0] or p[0] < 0 or p[1] >= im.size[1] or p[1] < 0:
+            continue
+        count += 1
+        color.append(im.getpixel(p))
+        centerPoint = (centerPoint[0]+p[0], centerPoint[1]+p[1])
+
+    centerPoint = (centerPoint[0]/count, centerPoint[1]/count)
+
+    color.append(im.getpixel(centerPoint))
+    color.append(im.getpixel(centerPoint))
+    color.append(im.getpixel(centerPoint))
+
+
+    div = float(len(color))
+    color = reduce(lambda rec, x : ((rec[0]+x[0]), (rec[1]+x[1]), (rec[2]+x[2])), color, (0,0,0))
+    color = (color[0]/div, color[1]/div, color[2]/div)
+    # Diese Zeile ergibt KEINEN Sinn!!!!!  Aber anders hab ichs nicht zum Laufen gebracht. Irgendein Fehler mit der Farbe...
+    color = (color[0]/4.0, color[1]/4.0, color[2]/4.0)
+    color = map(lambda x : int(x), color)
+
+    return color
+
 def brightenImage(im, value):
     enhancer = ImageEnhance.Brightness(im)
     im = enhancer.enhance(value)
@@ -93,6 +123,22 @@ def drawImageColoredTriangles(triangles, filename, origIm, multiplier):
     im = brightenImage(im, 3.0)
     ImageFile.MAXBLOCK = im.size[0] * im.size[1]
     im.save(filename, "JPEG", quality=100, optimize=True, progressive=True)
+
+def drawImageColoredVoronoi(polygons, filename, origIm, multiplier):
+    start = time.clock()
+    (sizeX, sizeY) = origIm.size
+    im = Image.new('RGB', (sizeX*multiplier, sizeY*multiplier))
+    draw = ImageDraw.Draw(im)
+    for pol in polygons:
+        if len(pol) < 2:
+            continue
+        (r,g,b) = getPolygonColor(pol, origIm)
+        newPol = map(lambda x: (x[0] * multiplier, x[1]*multiplier), pol)
+        draw.polygon(newPol, fill=(r,g,b,255))
+    im = brightenImage(im, 3.0)
+    ImageFile.MAXBLOCK = im.size[0] * im.size[1]
+    im.save(filename, "JPEG", quality=100, optimize=True, progressive=True)
+    print "Voronoi zeichnen: %.2fs" % (time.clock()-start)
 
 def generateTriangles(points):
     start = time.clock()
@@ -195,24 +241,38 @@ def resizeImage(filename, longestSide):
     im.save(newFilename, "JPEG")
     return newFilename
 
-def delaunayFromImage(filename):
-    (colorIm, blackIm) = loadAndFilterImage(filename)
-    points = findPointsFromImage(blackIm)
-    triangles = generateTriangles(points)
+# Wrapper.
+def delaunayFromPoints(points):
+    start = time.clock()
+    triangles = delaunay(points)
+    print "Delaunay-Triangulierung: %.2fs" % (time.clock()-start)
+    return triangles
 
-    createVoronoiFromDelaunay(triangles)
-
-    multiplier = 10
-    (width, height) = colorIm.size
-    drawTriangulation(triangles, "random_" + filename, width, height, multiplier)
-    drawImageColoredTriangles(triangles, "colored_" + filename, colorIm, multiplier)
+# Wrapper.
+def voronoiFromTriangles(triangles):
+    start = time.clock()
+    polygons = createVoronoiFromDelaunay(triangles)
+    print "Voronoi-Polygonalisierung: %.2fs" % (time.clock()-start)
+    return polygons
 
 if __name__ == '__main__':
-    filename = "sunset_meta.jpg"
-    filename = resizeImage(filename, 50)
-    delaunayFromImage(filename)
-    autocontrastImage("colored_" + filename)
-    equalizeImage("colored_" + filename)
+    filename = "sunset_2.jpg"
+    filename = resizeImage(filename, 1000)
+    (colorIm, blackIm) = loadAndFilterImage(filename)
+    (width, height) = colorIm.size
+    multiplier = 10
+
+    points = findPointsFromImage(blackIm)
+    triangles = delaunayFromPoints(points)
+    polygons = voronoiFromTriangles(triangles)
+
+    #drawTriangulation(triangles, "random_" + filename, width, height, multiplier)
+    drawImageColoredTriangles(triangles, "delaunay_" + filename, colorIm, multiplier)
+    drawImageColoredVoronoi(polygons, "voronoi_" + filename, colorIm, multiplier)
+
+    autocontrastImage("voronoi_" + filename)
+    autocontrastImage("delaunay_" + filename)
+    #equalizeImage("voronoi_" + filename)
 
 
 
