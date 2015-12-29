@@ -62,12 +62,18 @@ def getCenterPoint(t):
 def getTriangleColor(t, im):
 
     # 3x der Wert in der Mitte + jew. die Ecke / 6.
-    center = getCenterPoint(t)
-    p1 = t[0]
-    p2 = t[1]
-    p3 = t[2]
-    centerPixel = im.getpixel(center)
-    color = [im.getpixel(p1), im.getpixel(p2), im.getpixel(p3)] + [centerPixel]*3
+    color = []
+    for i in range(3):
+        p = t[i]
+        if p[0] >= im.size[0] or p[0] < 0 or p[1] >= im.size[1] or p[1] < 0:
+            continue
+        color.append(im.getpixel(p))
+
+    p = getCenterPoint(t)
+    if p[0] < im.size[0] and p[0] >= 0 and p[1] < im.size[1] and p[1] >= 0:
+        centerPixel = im.getpixel(p)
+        color = color + [centerPixel]*3
+
     div = float(len(color))
     color = reduce(lambda rec, x : ((rec[0]+x[0])/div, (rec[1]+x[1])/div, (rec[2]+x[2])/div), color, (0,0,0))
     color = map(lambda x : int(x), color)
@@ -256,13 +262,14 @@ def voronoiFromTriangles(triangles):
     return polygons
 
 if __name__ == '__main__':
-    filename = "feuerwerk.jpg"
+    filename = "sunset_4.jpg"
     filename = resizeImage(filename, 1000)
     (colorIm, blackIm) = loadAndFilterImage(filename)
     (width, height) = colorIm.size
     multiplier = 10
 
-    points = findPointsFromImage(blackIm)
+    #points = findPointsFromImage(blackIm)
+    points = generateRandomPoints(6000, width, height)
     triangles = delaunayFromPoints(points)
     polygons = voronoiFromTriangles(triangles)
 
