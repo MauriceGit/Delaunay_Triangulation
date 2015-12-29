@@ -8,6 +8,8 @@ This project consists of several parts which are joined together.
     as well but I can't really prove it.
     Anyway. You provide a list of points (tuples with x,y-coordinates!) and get back a list of
     triangles (also tuples with three points per triangle!).
+    In the new version it also transforms the triangles into voronoi-regions 
+    (polygons --> list of list of points).
 
 * **Image-Triangulation**:
 
@@ -24,8 +26,18 @@ This project consists of several parts which are joined together.
 
 * **Voronoi-Diagrams:**
 
-    The voronoi-diagram-part of the program is still to be done.
-    The idea is to take the delaunay-triangulation and transform it to voronoi-regions.
-    The regions will then be rendered and colored just like the triangles before.
-    It might look a little better or at least interesting :)
+    The delaunay-triangulation is taken and transformed in O(n) into voronoi-regions.
+    These regions will then be rendered into an image just like the triangles before.
+    The color is determined by the average color of each corner and the center of the
+    polygon.
+
+* **Point-Distribution:**
+    There are different options for determining points in the image for triangulation.
+    Points can be determined from edge-detection and are more common in parts of the image
+    where bigger color-differences occure.
+    Otherwise points can be distributed equally over the image space.
+    The choice has a quite big influence on the outcome-image. For the delaunay-triangulation
+    I prefer more points in edging areas. For voronoi-regions it looks more pleasant if the
+    regions are more equally distributed.
+    Anyway the results are stunning (in my opinion) :).
 
