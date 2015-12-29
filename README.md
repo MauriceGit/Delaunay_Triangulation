@@ -32,6 +32,7 @@ This project consists of several parts which are joined together.
     polygon.
 
 * **Point-Distribution:**
+
     There are different options for determining points in the image for triangulation.
     Points can be determined from edge-detection and are more common in parts of the image
     where bigger color-differences occure.
