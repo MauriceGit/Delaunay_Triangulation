@@ -1,4 +1,4 @@
-# Delaunay-Triangulation
+# Delaunay-Triangulation and Voronoi-Regions in images
 This project consists of several parts which are joined together.
 
 * **Triangulation**
