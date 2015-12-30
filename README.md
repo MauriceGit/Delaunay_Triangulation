@@ -17,10 +17,6 @@ Image of an end-Result:
 
     Example image of 100 random points triangulated:
     ![Image of a triangulation of 100 points](https://github.com/MauriceGit/Delaunay_Triangulation/blob/master/Screenshots/100Points.jpg "Triangulation of 100 random points")
-    
-    Example of 5000 points with gauss-sampling triangulated:
-    ![Image of a triangulation of 5000 points](https://github.com/MauriceGit/Delaunay_Triangulation/blob/master/Screenshots/triangle_gauss_big.jpg "Triangulation of 5000 points")
-
 
 * **Image-Triangulation**:
 
@@ -35,12 +31,24 @@ Image of an end-Result:
     considered.
     These colored triangles will then be rendered into an new jpg-image.
 
+    Example image with about 4000 different points triangulated and colored according to the original picture:
+    ![Image of a triangulation of a photo of a sunset](https://github.com/MauriceGit/Delaunay_Triangulation/blob/master/Screenshots/sunset2_triangle_colored.jpg "Image-triangulation")
+
+    Example image when the points are equally distributed and not extracted from edges:
+    ![Image of a triangulation of a photo of some fireworks](https://github.com/MauriceGit/Delaunay_Triangulation/blob/master/Screenshots/delaunay_equal_distributed_feuerwerk.jpg "Image-triangulation equally distributed")
+
 * **Voronoi-Diagrams:**
 
     The delaunay-triangulation is taken and transformed in O(n) into voronoi-regions.
     These regions will then be rendered into an image just like the triangles before.
     The color is determined by the average color of each corner and the center of the
     polygon.
+
+    Example image directly converted from triangles to voronoi regions:
+    ![Image of voronoi regions](https://github.com/MauriceGit/Delaunay_Triangulation/blob/master/Screenshots/voronoi_empuriabrava.jpg "Voronoi diagram from triangles")
+
+    Now with equally distributed point-selection (looking a bit better with voronoi-regions in my opionion):
+    ![Image of equally distributed voronoi regions](https://github.com/MauriceGit/Delaunay_Triangulation/blob/master/Screenshots/voronoi_equal_distributed_sunset_4.jpg "Voronoi diagram from equally distributed triangles")
 
 * **Point-Distribution:**
 
@@ -53,3 +61,8 @@ Image of an end-Result:
     regions are more equally distributed.
     Anyway the results are stunning (in my opinion) :).
 
+    Result of a triangulation with point-extraction from edges and constrast:
+    ![Image with triangles from edges](https://github.com/MauriceGit/Delaunay_Triangulation/blob/master/Screenshots/empuriabrava_01_triangled.jpg "triangulated image")
+
+    The next image shows the exact same extracted triangles with random colors and not colored in original colors from the photo:
+    ![Triangles with random colors](https://github.com/MauriceGit/Delaunay_Triangulation/blob/master/Screenshots/empuriabrava_01_distribution.jpg "triangles with random colors")
