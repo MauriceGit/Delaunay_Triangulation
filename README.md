@@ -11,6 +11,8 @@ This project consists of several parts which are joined together.
     In the new version it also transforms the triangles into voronoi-regions 
     (polygons --> list of list of points).
 
+    ![Image of a triangulation of 100 points](https://github.com/MauriceGit/Delaunay_Triangulation/blob/master/Screenshots/100Points.jpg "Triangulation of 100 random points")
+
 * **Image-Triangulation**:
 
     This is the actual application of the delaunay-triangulation. You can specify a .jpg-Image
