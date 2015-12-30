@@ -1,6 +1,10 @@
 # Delaunay-Triangulation and Voronoi-Regions in images
 This project consists of several parts which are joined together.
 
+Image of an end-Result:
+![Voronoi-diagrams of a sunset](https://github.com/MauriceGit/Delaunay_Triangulation/blob/master/Screenshots/voronoi_equal_distributed_sunset_3.jpg "Voronoi diagrams of a sunset picture")
+
+
 * **Triangulation**
 
     I always wanted to properly implement a delaunay triangulation. So here it is. It runs in
@@ -11,7 +15,12 @@ This project consists of several parts which are joined together.
     In the new version it also transforms the triangles into voronoi-regions 
     (polygons --> list of list of points).
 
+    Example image of 100 random points triangulated:
     ![Image of a triangulation of 100 points](https://github.com/MauriceGit/Delaunay_Triangulation/blob/master/Screenshots/100Points.jpg "Triangulation of 100 random points")
+    
+    Example of 5000 points with gauss-sampling triangulated:
+    ![Image of a triangulation of 5000 points](https://github.com/MauriceGit/Delaunay_Triangulation/blob/master/Screenshots/triangle_gauss_big.jpg "Triangulation of 5000 points")
+
 
 * **Image-Triangulation**:
 
