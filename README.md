@@ -64,5 +64,5 @@ Image of an end-Result:
     Result of a triangulation with point-extraction from edges and constrast:
     ![Image with triangles from edges](https://github.com/MauriceGit/Delaunay_Triangulation/blob/master/Screenshots/LowRes/empuriabrava_01_triangled.jpg "triangulated image")
 
-    The next image shows the exact same extracted triangles with random colors and not colored in original colors from the photo:
+    The next image shows the exact same extracted triangles with random colors and not colored from the photo:
     ![Triangles with random colors](https://github.com/MauriceGit/Delaunay_Triangulation/blob/master/Screenshots/LowRes/empuriabrava_01_distribution.jpg "triangles with random colors")
