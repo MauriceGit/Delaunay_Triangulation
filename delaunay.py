@@ -500,6 +500,8 @@ def removeOutOfBoundsTriangles(triangles, minX, minY, maxX, maxY):
 # type Ref       = Triangle
 # type Triangle  = [a,b,c, Ref, Ref, Ref]
 # type Triangles = [Triangle]
+#
+# Next time maybe change the underlaying data-structure to a tree (scipy.spatial.KDTree).
 def delaunay(points):
     # maximale Ausdehnung der Koordinaten:
     # O(n)
