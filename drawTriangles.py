@@ -262,14 +262,14 @@ def voronoiFromTriangles(triangles):
     return polygons
 
 if __name__ == '__main__':
-    filename = "sunset_4.jpg"
-    filename = resizeImage(filename, 1000)
+    filename = "vulcan.jpg"
+    filename = resizeImage(filename, 2000)
     (colorIm, blackIm) = loadAndFilterImage(filename)
     (width, height) = colorIm.size
     multiplier = 10
 
-    #points = findPointsFromImage(blackIm)
-    points = generateRandomPoints(6000, width, height)
+    points = findPointsFromImage(blackIm)
+    #points = generateRandomPoints(15000, width, height)
     triangles = delaunayFromPoints(points)
     polygons = voronoiFromTriangles(triangles)
 
