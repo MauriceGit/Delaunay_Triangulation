@@ -244,14 +244,14 @@ def equalizeImage(filename):
     im.save( addFilenamePrefix( "equalized_", filename ), "JPEG" )
     print "Equalize Image: %.2fs" % (time.clock()-start)
 
-def resizeImage(filename, longestSide, outFilename):
+def resizeImage(filename, longestSide, outDirectory="."):
     im = Image.open(filename)
     (width, height) = im.size
     ratioX = float(longestSide) / width
     ratioY = float(longestSide) / height
     ratio = min(ratioX, ratioY)
     im.thumbnail((width*ratio, height*ratio), Image.ANTIALIAS)
-    newFilename = addFilenamePrefix( "small_", outFilename )
+    newFilename = os.path.join(outDirectory, addFilenamePrefix( "small_", os.path.basename(filename)))
     im.save(newFilename, "JPEG")
     return newFilename
 
