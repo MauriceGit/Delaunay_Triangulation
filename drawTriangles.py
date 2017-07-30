@@ -1,6 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
+import os
 from PIL import Image, ImageDraw, ImageFilter, ImageEnhance, ImageOps, ImageFile
 from delaunay import delaunay
 from voronoi import createVoronoiFromDelaunay
@@ -8,6 +9,13 @@ import random as rand
 import time
 import numpy as np
 import pickle
+
+#
+# Add a prefix to a path-specified filename;
+# prefix goes on the filename portion.
+#
+def addFilenamePrefix( prefix, filename ):
+    return os.path.join( os.path.dirname( filename ), prefix + os.path.basename( filename ) )
 
 def generateRandomPoints(count, sizeX, sizeY):
     points = []
@@ -226,24 +234,24 @@ def autocontrastImage(filename):
     start = time.clock()
     im = Image.open(filename)
     im = ImageOps.autocontrast(im)
-    im.save("autocontrasted_" + filename, "JPEG")
+    im.save( addFilenamePrefix( "autocontrasted_", filename ), "JPEG" )
     print "Autocontrast Image: %.2fs" % (time.clock()-start)
 
 def equalizeImage(filename):
     start = time.clock()
     im = Image.open(filename)
     im = ImageOps.equalize(im)
-    im.save("equalized_" + filename, "JPEG")
+    im.save( addFilenamePrefix( "equalized_", filename ), "JPEG" )
     print "Equalize Image: %.2fs" % (time.clock()-start)
 
-def resizeImage(filename, longestSide):
+def resizeImage(filename, longestSide, outFilename):
     im = Image.open(filename)
     (width, height) = im.size
     ratioX = float(longestSide) / width
     ratioY = float(longestSide) / height
     ratio = min(ratioX, ratioY)
     im.thumbnail((width*ratio, height*ratio), Image.ANTIALIAS)
-    newFilename = "small_" + filename
+    newFilename = addFilenamePrefix( "small_", outFilename )
     im.save(newFilename, "JPEG")
     return newFilename
 
@@ -274,12 +282,12 @@ if __name__ == '__main__':
     polygons = voronoiFromTriangles(triangles)
 
     #drawTriangulation(triangles, "random_" + filename, width, height, multiplier)
-    drawImageColoredTriangles(triangles, "delaunay_" + filename, colorIm, multiplier)
-    drawImageColoredVoronoi(polygons, "voronoi_" + filename, colorIm, multiplier)
+    drawImageColoredTriangles(triangles, addFilenamePrefix( "delaunay_", filename ), colorIm, multiplier)
+    drawImageColoredVoronoi(polygons, addFilenamePrefix( "voronoi_", filename ), colorIm, multiplier)
 
-    autocontrastImage("voronoi_" + filename)
-    autocontrastImage("delaunay_" + filename)
-    #equalizeImage("voronoi_" + filename)
+    autocontrastImage(addFilenamePrefix( "voronoi_", filename))
+    autocontrastImage(addFilenamePrefix("delaunay_", filename))
+    #equalizeImage(addFilenamePrefix("voronoi_", filename))
 
 
 
