@@ -2,13 +2,15 @@
 # -*- coding: utf-8 -*-
 
 import os
-from PIL import Image, ImageDraw, ImageFilter, ImageEnhance, ImageOps, ImageFile
-from delaunay import delaunay
-from voronoi import createVoronoiFromDelaunay
+import argparse
 import random as rand
 import time
 import numpy as np
 import pickle
+
+from PIL import Image, ImageDraw, ImageFilter, ImageEnhance, ImageOps, ImageFile
+from delaunay import delaunay
+from voronoi import createVoronoiFromDelaunay
 
 #
 # Add a prefix to a path-specified filename;
@@ -166,7 +168,7 @@ def generateTriangles(points):
 # 1.5 ~ 500  Punkte
 # 2.0 ~ 3000 Punkte
 # 2.2 ~ 9500 Punkte
-def findPointsFromImage(im):
+def findPointsFromImage(im, factor):
     start = time.clock()
     pix = np.array(im)
     points = []
@@ -174,8 +176,8 @@ def findPointsFromImage(im):
     for row in range(len(pix)):
         for col in range(len(pix[row])):
 
-            v =  pix[row][col]
-            v = v**2.1 / float(2**18)
+            v = pix[row][col]
+            v = v**float(factor) / float(2**18)
             if np.random.random() < v:
                 points.append((col, row))
 
@@ -230,11 +232,11 @@ def saveTriangleListToFile(triangles, filename):
     with open(filename, 'w') as f:
         pickle.dump(triangles, f)
 
-def autocontrastImage(filename):
+def autocontrastImage(input_filename, output_filename):
     start = time.clock()
-    im = Image.open(filename)
+    im = Image.open(input_filename)
     im = ImageOps.autocontrast(im)
-    im.save( addFilenamePrefix( "autocontrasted_", filename ), "JPEG" )
+    im.save( addFilenamePrefix( "autocontrasted_", output_filename ), "JPEG" )
     print "Autocontrast Image: %.2fs" % (time.clock()-start)
 
 def equalizeImage(filename):
@@ -270,23 +272,43 @@ def voronoiFromTriangles(triangles):
     return polygons
 
 if __name__ == '__main__':
-    filename = "vulcan.jpg"
-    filename = resizeImage(filename, 2000)
-    (colorIm, blackIm) = loadAndFilterImage(filename)
+
+    parser = argparse.ArgumentParser()
+
+    # Values
+    parser.add_argument('-o', '--output', dest='output_filename', help='The filename to write the image to. Supported filetypes are BMP, TGA, PNG, and JPEG')
+    parser.add_argument('-i', '--image-file', dest='input_filename', help='An image file to use when calculating triangle colors. Image dimensions will override dimensions set by -x and -y.')
+    parser.add_argument('-f', '--factor', dest='factor', help='Factor definition. Determines the number of generated points (recommended value = 2.1 --> ~3000 points)')
+
+    # Flags
+    parser.add_argument('-r', '--random', dest='random', action='store_false', help='If enabled, set the points randomly.')
+    parser.add_argument('-t', '--triangle', dest='triangle', action='store_true', help='If enabled, compute the triangle based in the spatial distribution of the image.')
+    parser.add_argument('-v', '--voronoi', dest='voronoi', action='store_false', help='If enabled, compute the voronoi .')
+
+    options = parser.parse_args()
+
+    (colorIm, blackIm) = loadAndFilterImage(options.input_filename)
     (width, height) = colorIm.size
     multiplier = 10
 
-    points = findPointsFromImage(blackIm)
-    #points = generateRandomPoints(15000, width, height)
-    triangles = delaunayFromPoints(points)
-    polygons = voronoiFromTriangles(triangles)
+    if(options.random==True):
+        points = generateRandomPoints(15000, width, height)
+        triangles = delaunayFromPoints(points)
+        drawTriangulation(triangles, addFilenamePrefix( "random_", options.output_filename ), width, height, multiplier)
 
-    #drawTriangulation(triangles, "random_" + filename, width, height, multiplier)
-    drawImageColoredTriangles(triangles, addFilenamePrefix( "delaunay_", filename ), colorIm, multiplier)
-    drawImageColoredVoronoi(polygons, addFilenamePrefix( "voronoi_", filename ), colorIm, multiplier)
+    if(options.triangle==True):
+        points = findPointsFromImage(blackIm, options.factor)
+        triangles = delaunayFromPoints(points)
+        drawImageColoredTriangles(triangles, addFilenamePrefix( "delaunay_", options.output_filename ), colorIm, multiplier)
 
-    autocontrastImage(addFilenamePrefix( "voronoi_", filename))
-    autocontrastImage(addFilenamePrefix("delaunay_", filename))
+    if(options.voronoi==True):
+        points = findPointsFromImage(blackIm, options.factor)
+        triangles = delaunayFromPoints(points)
+        polygons = voronoiFromTriangles(triangles)
+        drawImageColoredVoronoi(polygons, addFilenamePrefix( "voronoi_", options.output_filename ), colorIm, multiplier)
+
+    #autocontrastImage(addFilenamePrefix( "voronoi_", options.output_filename))
+    #autocontrastImage(addFilenamePrefix("delaunay_", options.output_filename))
     #equalizeImage(addFilenamePrefix("voronoi_", filename))
 
 
