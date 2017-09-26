@@ -138,7 +138,8 @@ def drawImageColoredTriangles(triangles, filename, origIm, multiplier):
         draw.polygon(drawT, fill=(r,g,b,255))
     im = brightenImage(im, 3.0)
     ImageFile.MAXBLOCK = im.size[0] * im.size[1]
-    im.save(filename, "JPEG", quality=100, optimize=True, progressive=True)
+    im.save(filename, "JPEG", quality=100, optimize=True, progressive=True)    
+    
 
 def drawImageColoredVoronoi(polygons, filename, origIm, multiplier):
     start = time.clock()
@@ -279,37 +280,38 @@ if __name__ == '__main__':
     parser.add_argument('-o', '--output', dest='output_filename', help='The filename to write the image to. Supported filetypes are BMP, TGA, PNG, and JPEG')
     parser.add_argument('-i', '--image-file', dest='input_filename', help='An image file to use when calculating triangle colors. Image dimensions will override dimensions set by -x and -y.')
     parser.add_argument('-f', '--factor', dest='factor', help='Factor definition. Determines the number of generated points (recommended value = 2.1 --> ~3000 points)')
-
-    # Flags
-    parser.add_argument('-r', '--random', dest='random', action='store_false', help='If enabled, set the points randomly.')
-    parser.add_argument('-t', '--triangle', dest='triangle', action='store_true', help='If enabled, compute the triangle based in the spatial distribution of the image.')
-    parser.add_argument('-v', '--voronoi', dest='voronoi', action='store_false', help='If enabled, compute the voronoi .')
+    parser.add_argument('-r', '--random', dest='create_random', default=False, help='If enabled, set the points randomly.')
+    parser.add_argument('-t', '--triangle', dest='create_triangle', default=True, help='If enabled, compute the triangle based in the spatial distribution of the image.')
+    parser.add_argument('-v', '--voronoi', dest='create_voronoi', default=False, help='If enabled, compute the voronoi based in the spatial distribution of the image..')
 
     options = parser.parse_args()
 
-    (colorIm, blackIm) = loadAndFilterImage(options.input_filename)
-    (width, height) = colorIm.size
-    multiplier = 10
+    if(not os.path.isfile(options.input_filename)):
+        print "There was an error in the path of the indicated file. Please check and try again!"
+    else:
+        (colorIm, blackIm) = loadAndFilterImage(options.input_filename)
+        (width, height) = colorIm.size
+        multiplier = 10
 
-    if(options.random==True):
-        points = generateRandomPoints(15000, width, height)
-        triangles = delaunayFromPoints(points)
-        drawTriangulation(triangles, addFilenamePrefix( "random_", options.output_filename ), width, height, multiplier)
+        if options.create_random:
+            points = generateRandomPoints(15000, width, height)
+            triangles = delaunayFromPoints(points)
+            drawTriangulation(triangles, addFilenamePrefix( "random_", options.output_filename ), width, height, multiplier)
 
-    if(options.triangle==True):
-        points = findPointsFromImage(blackIm, options.factor)
-        triangles = delaunayFromPoints(points)
-        drawImageColoredTriangles(triangles, addFilenamePrefix( "delaunay_", options.output_filename ), colorIm, multiplier)
+        if options.create_triangle:
+            points = findPointsFromImage(blackIm, options.factor)
+            triangles = delaunayFromPoints(points)
+            drawImageColoredTriangles(triangles, addFilenamePrefix( "delaunay_", options.output_filename ), colorIm, multiplier)
 
-    if(options.voronoi==True):
-        points = findPointsFromImage(blackIm, options.factor)
-        triangles = delaunayFromPoints(points)
-        polygons = voronoiFromTriangles(triangles)
-        drawImageColoredVoronoi(polygons, addFilenamePrefix( "voronoi_", options.output_filename ), colorIm, multiplier)
+        if options.create_voronoi:
+            points = findPointsFromImage(blackIm, options.factor)
+            triangles = delaunayFromPoints(points)
+            polygons = voronoiFromTriangles(triangles)
+            drawImageColoredVoronoi(polygons, addFilenamePrefix( "voronoi_", options.output_filename ), colorIm, multiplier)
 
-    #autocontrastImage(addFilenamePrefix( "voronoi_", options.output_filename))
-    #autocontrastImage(addFilenamePrefix("delaunay_", options.output_filename))
-    #equalizeImage(addFilenamePrefix("voronoi_", filename))
+        #autocontrastImage(addFilenamePrefix( "voronoi_", options.output_filename))
+        #autocontrastImage(addFilenamePrefix("delaunay_", options.output_filename))
+        #equalizeImage(addFilenamePrefix("voronoi_", filename))
 
 
 
