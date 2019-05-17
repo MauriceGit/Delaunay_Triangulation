@@ -1,4 +1,20 @@
-# Delaunay Triangulation and Voronoi Regions in images
+# [Deprecated]
+
+This tool for image manipulation with Voronoi/Delaunay is deprecated and was rewritten.
+
+__Visit the successor project:__ [github.com/MauriceGit/Voronoi_Image_Manipulation](https://github.com/MauriceGit/Voronoi_Image_Manipulation)
+
+Please use the new tool for the following reasons:
+* More functionality
+* A lot more user friendly
+* Real-time with an actual GUI
+* A lot faster (a LOT. We are talking speed improvement of factor >100)
+* A lot more robust
+* Actual O(n log(n)) performance
+
+__Visit the successor project:__ [github.com/MauriceGit/Voronoi_Image_Manipulation](https://github.com/MauriceGit/Voronoi_Image_Manipulation)
+
+### Delaunay Triangulation and Voronoi Regions in images
 This project consists of several parts which are joined together.
 
 Image of an end result:
